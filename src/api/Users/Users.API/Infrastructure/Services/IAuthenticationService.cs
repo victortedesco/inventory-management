@@ -7,18 +7,11 @@ public interface IAuthenticationService
     Task<Result> AuthenticateAsync(string identifier, string password);
 }
 
-public class AuthenticationService : IAuthenticationService
+public class AuthenticationService(IUserService userService, IPasswordHasher passwordHasher, IJWTTokenGenerator jwtTokenGenerator) : IAuthenticationService
 {
-    private readonly IUserService _userService;
-    private readonly IPasswordHasher _passwordHasher;
-    private readonly IJWTTokenGenerator _jwtTokenGenerator;
-
-    public AuthenticationService(IUserService userService, IPasswordHasher passwordHasher, IJWTTokenGenerator jwtTokenGenerator)
-    {
-        _userService = userService;
-        _passwordHasher = passwordHasher;
-        _jwtTokenGenerator = jwtTokenGenerator;
-    }
+    private readonly IUserService _userService = userService;
+    private readonly IPasswordHasher _passwordHasher = passwordHasher;
+    private readonly IJWTTokenGenerator _jwtTokenGenerator = jwtTokenGenerator;
 
     public async Task<Result> AuthenticateAsync(string identifier, string password)
     {

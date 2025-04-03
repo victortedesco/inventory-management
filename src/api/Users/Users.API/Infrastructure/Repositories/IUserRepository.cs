@@ -54,30 +54,25 @@ public class UserRepository(AppDbContext context) : IUserRepository
     public async Task<bool> CreateAsync(User user)
     {
         await _users.AddAsync(user);
-        await context.SaveChangesAsync();
-        return true;
+        return await context.SaveChangesAsync() > 0;
     }
 
     public async Task<bool> UpdateAsync(User user)
     {
         if (await GetByIdAsync(user.Id) is null)
-        {
             return false;
-        }
+
         _users.Update(user);
-        await context.SaveChangesAsync();
-        return true;
+        return await context.SaveChangesAsync() > 0;
     }
 
     public async Task<bool> DeleteAsync(Guid id)
     {
         var user = await GetByIdAsync(id);
         if (user is null)
-        {
             return false;
-        }
+
         _users.Remove(user);
-        await context.SaveChangesAsync();
-        return true;
+        return await context.SaveChangesAsync() > 0;
     }
 }

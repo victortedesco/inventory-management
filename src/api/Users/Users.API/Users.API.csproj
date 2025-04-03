@@ -9,15 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Infrastructure\DTO\NewFile.txt" />
-    <None Remove="Infrastructure\Services\IJWT" />
-    <None Remove="Infrastructure\Services\IJwtGenerator" />
-    <None Remove="Infrastructure\Services\NewFile.txt" />
-    <None Remove="Application\ViewModels\NewFile.txt" />
-    <None Remove="Application\ViewModels\UserViewModel" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageReference Include="FluentResults" Version="3.16.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.3" />

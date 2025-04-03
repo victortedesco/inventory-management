@@ -1,13 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Users.API.Application.Requests;
-using Users.API.Application.ViewModel;
+using Users.API.Application.ViewModels;
 using Users.API.Infrastructure.DTO;
 using Users.API.Infrastructure.Services;
 
 namespace Users.API.Controllers;
 
 [ApiController]
-[Route("api/v1/[controller]")]
+[Route("api/v1/users")]
 public class UserController(IUserService service) : ControllerBase
 {
     private readonly IUserService _service = service;
@@ -95,14 +95,7 @@ public class UserController(IUserService service) : ControllerBase
     [ProducesResponseType(StatusCodes.Status201Created)]
     public async Task<IActionResult> Add([FromBody] UpdateUserRequest request)
     {
-        var dto = new UserDTO
-        {
-            UserName = request.UserName,
-            Email = request.Email,
-            DisplayName = request.DisplayName,
-            CPF = request.CPF,
-            PasswordHash = request.Password
-        };
+        var dto = new UserDTO(default, request.UserName, request.DisplayName, request.Email, request.CPF, default, request.Password);
 
         var result = await _service.CreateAsync(dto);
 
@@ -118,15 +111,7 @@ public class UserController(IUserService service) : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateUserRequest request)
     {
-        var dto = new UserDTO
-        {
-            Id = id,
-            UserName = request.UserName,
-            Email = request.Email,
-            DisplayName = request.DisplayName,
-            CPF = request.CPF,
-            PasswordHash = request.Password
-        };
+        var dto = new UserDTO(id, request.UserName, request.DisplayName, request.Email, request.CPF, default, request.Password);
         var result = await _service.UpdateAsync(dto);
 
         if (result.IsFailed)

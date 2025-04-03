@@ -1,27 +1,12 @@
 ﻿using Users.API.Infrastructure.DTO;
 
-namespace Users.API.Application.ViewModel;
+namespace Users.API.Application.ViewModels;
 
-public class UserViewModel
+public record UserViewModel(Guid Id, string UserName, string DisplayName, string Email, string CPF, string Role)
 {
-    public Guid Id { get; set; }
-    public string UserName { get; set; }
-    public string DisplayName { get; set; }
-    public string Email { get; set; }
-    public string CPF { get; set; }
-    public string Role { get; set; }
-
     public static UserViewModel FromDTO(UserDTO dto)
     {
-        return new UserViewModel
-        {
-            Id = dto.Id,
-            UserName = dto.UserName,
-            DisplayName = dto.DisplayName,
-            Email = dto.Email,
-            CPF = dto.CPF,
-            Role = dto.Role
-        };
+        return new UserViewModel(dto.Id, dto.UserName, dto.DisplayName, dto.Email, dto.CPF, dto.Role);
     }
 
     public static IEnumerable<UserViewModel> FromDTO(IEnumerable<UserDTO> dtos)
