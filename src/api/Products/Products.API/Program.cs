@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Products.Infrastructure;
 using Products.Infrastructure.Data;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,11 +10,7 @@ builder.Services.AddControllers().ConfigureApiBehaviorOptions(options =>
 });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddDbContext<AppDbContext>(options =>
-{
-    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-    options.UseSqlite("Data Source=Products.db");
-});
+builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddCors(o => o.AddPolicy("AllowAll", builder =>
 {
     builder.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader();

@@ -7,11 +7,11 @@ namespace Products.Infrastructure.Repositories;
 
 public class CategoryRepository(AppDbContext dbContext) : ICategoryRepository
 {
-    private readonly DbSet<Category> _dbSet = dbContext.Categories;
+    private readonly DbSet<Category> _categories = dbContext.Categories;
 
     public async Task<IEnumerable<Category>> GetAllAsync(int skip, int take)
     {
-        return await _dbSet
+        return await _categories
             .Skip(skip)
             .Take(take)
             .ToListAsync();
@@ -19,20 +19,19 @@ public class CategoryRepository(AppDbContext dbContext) : ICategoryRepository
 
     public async Task<Category> GetByIdAsync(int id)
     {
-        return await _dbSet
-            .FirstOrDefaultAsync(c => c.Id == id);
+        return await _categories.FindAsync(id);
     }
 
     public async Task<Category> CreateAsync(Category entity)
     {
-        await _dbSet.AddAsync(entity);
+        await _categories.AddAsync(entity);
         await dbContext.SaveChangesAsync();
         return entity;
     }
 
     public async Task<Category> UpdateAsync(Category entity)
     {
-        _dbSet.Update(entity);
+        _categories.Update(entity);
         await dbContext.SaveChangesAsync();
         return entity;
     }
@@ -42,7 +41,7 @@ public class CategoryRepository(AppDbContext dbContext) : ICategoryRepository
         var entity = await GetByIdAsync(id);
         if (entity is null)
             return false;
-        _dbSet.Remove(entity);
+        _categories.Remove(entity);
         return await dbContext.SaveChangesAsync() > 0;
     }
 }

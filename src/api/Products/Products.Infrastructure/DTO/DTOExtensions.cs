@@ -6,7 +6,7 @@ public static class DTOExtensions
 {
     public static ProductDTO ToDTO(this Product product)
     {
-        return new ProductDTO(product.Id, product.Name, product.Image, product.UnitPrice, product.Category.ToDTO());
+        return new ProductDTO(product.Id, product.Name, product.Image, product.UnitPrice, product.Category.Id);
     }
 
     public static IEnumerable<ProductDTO> ToDTO(this IEnumerable<Product> products)
@@ -16,7 +16,7 @@ public static class DTOExtensions
 
     public static CategoryDTO ToDTO(this Category category)
     {
-        return new CategoryDTO(category.Id, category.Name);
+        return new CategoryDTO(category.Id, category.Name, category.Products.ToDTO());
     }
 
     public static IEnumerable<CategoryDTO> ToDTO(this IEnumerable<Category> categories)

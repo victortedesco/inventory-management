@@ -9,4 +9,6 @@ public class Box : IEntity<Guid>
     public float Depth { get; set; }
     public float Height { get; set; }
     public float Width { get; set; }
+
+    public Box() { }
 }
