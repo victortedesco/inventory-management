@@ -4,5 +4,4 @@ public class CategoryDTO : IDTO<int>
 {
     public int Id { get; set; }
     public string Name { get; set; }
-    public IEnumerable<ProductDTO> Products { get; set; } = [];
 }

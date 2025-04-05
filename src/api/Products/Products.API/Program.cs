@@ -28,7 +28,7 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SchemaFilter<DateOnlySchemaFilter>();
 
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Product API", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Inventory Management - Product API", Version = "v1" });
 
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {

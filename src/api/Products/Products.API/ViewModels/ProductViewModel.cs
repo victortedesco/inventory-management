@@ -10,5 +10,5 @@ public class ProductViewModel
     public ImageType ImageType => Image.StartsWith("data:") ? ImageType.Base64 : ImageType.URL;
     public decimal UnitPrice { get; set; }
     public uint Quantity { get; set; }
-    public int CategoryId { get; set; }
+    public CategoryViewModel Category { get; set; }
 }
