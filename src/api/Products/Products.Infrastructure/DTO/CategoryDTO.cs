@@ -1,3 +1,8 @@
 ﻿namespace Products.Infrastructure.DTO;
 
-public record CategoryDTO(int Id, string Name, IEnumerable<ProductDTO> Products) : IDTO<int>;
+public class CategoryDTO : IDTO<int>
+{
+    public int Id { get; set; }
+    public string Name { get; set; }
+    public IEnumerable<ProductDTO> Products { get; set; } = [];
+}
