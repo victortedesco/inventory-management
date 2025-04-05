@@ -13,8 +13,8 @@ public interface IUserService
     Task<UserDTO> GetByEmailAsync(string email);
     Task<UserDTO> GetByCPFAsync(string cpf);
     Task<IEnumerable<UserDTO>> GetByDisplayNameAsync(string displayName);
-    Task<Result> CreateAsync(UserDTO user);
-    Task<Result> UpdateAsync(UserDTO user);
+    Task<Result<UserDTO>> CreateAsync(UserDTO user);
+    Task<Result<UserDTO>> UpdateAsync(UserDTO user);
     Task<bool> DeleteAsync(Guid id);
 }
 
@@ -59,7 +59,7 @@ public class UserService(IUserRepository userRepository, IPasswordHasher passwor
         return UserDTO.FromModel(users);
     }
 
-    public async Task<Result> CreateAsync(UserDTO user)
+    public async Task<Result<UserDTO>> CreateAsync(UserDTO user)
     {
         var errors = new List<Error>();
 
@@ -108,10 +108,14 @@ public class UserService(IUserRepository userRepository, IPasswordHasher passwor
         var newUser = new User(Guid.NewGuid(), user.UserName, user.DisplayName, user.Email, user.CPF, user.Role, user.Password);
 
         var result = await _userRepository.CreateAsync(newUser);
-        return result ? Result.Ok().WithSuccess(newUser.Id.ToString()) : Result.Fail("Failed to create user");
+
+        if (result is null)
+            return Result.Fail("Failed to create user");
+
+        return Result.Ok(UserDTO.FromModel(result));
     }
 
-    public async Task<Result> UpdateAsync(UserDTO user)
+    public async Task<Result<UserDTO>> UpdateAsync(UserDTO user)
     {
         var errors = new List<Error>();
         var existingUser = await _userRepository.GetByIdAsync(user.Id);
@@ -165,7 +169,11 @@ public class UserService(IUserRepository userRepository, IPasswordHasher passwor
         var updatedUser = new User(user.Id, user.UserName, user.DisplayName, user.Email, user.CPF, user.Role, user.Password);
 
         var result = await _userRepository.UpdateAsync(updatedUser);
-        return result ? Result.Ok() : Result.Fail("Failed to update user");
+
+        if (result is null)
+            return Result.Fail("Failed to update user");
+
+        return Result.Ok(UserDTO.FromModel(result));
     }
 
     public async Task<bool> DeleteAsync(Guid id)

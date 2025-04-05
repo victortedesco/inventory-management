@@ -12,8 +12,8 @@ public interface IUserRepository
     Task<User> GetByCPFAsync(string cpf);
     Task<User> GetByEmailAsync(string email);
     Task<IEnumerable<User>> GetByDisplayNameAsync(string displayName);
-    Task<bool> CreateAsync(User user);
-    Task<bool> UpdateAsync(User user);
+    Task<User> CreateAsync(User user);
+    Task<User> UpdateAsync(User user);
     Task<bool> DeleteAsync(Guid id);
 }
 
@@ -51,19 +51,23 @@ public class UserRepository(AppDbContext context) : IUserRepository
         return await _users.Where(u => u.DisplayName.Contains(displayName)).ToListAsync();
     }
 
-    public async Task<bool> CreateAsync(User user)
+    public async Task<User> CreateAsync(User user)
     {
-        await _users.AddAsync(user);
-        return await context.SaveChangesAsync() > 0;
+        var newUser = await _users.AddAsync(user);
+        await context.SaveChangesAsync();
+
+        return newUser.Entity;
     }
 
-    public async Task<bool> UpdateAsync(User user)
+    public async Task<User> UpdateAsync(User user)
     {
         if (await GetByIdAsync(user.Id) is null)
-            return false;
+            return null;
 
-        _users.Update(user);
-        return await context.SaveChangesAsync() > 0;
+        var updatedUser = _users.Update(user);
+        await context.SaveChangesAsync();
+
+        return updatedUser.Entity;
     }
 
     public async Task<bool> DeleteAsync(Guid id)
