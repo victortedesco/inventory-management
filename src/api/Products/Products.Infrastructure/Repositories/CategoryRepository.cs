@@ -12,6 +12,7 @@ public class CategoryRepository(AppDbContext dbContext) : ICategoryRepository
     public async Task<IEnumerable<Category>> GetAllAsync(int skip, int take)
     {
         return await _categories
+            .OrderBy(c => c.Id)
             .Skip(skip)
             .Take(take)
             .ToListAsync();
@@ -20,6 +21,12 @@ public class CategoryRepository(AppDbContext dbContext) : ICategoryRepository
     public async Task<Category> GetByIdAsync(int id)
     {
         return await _categories.FindAsync(id);
+    }
+
+    public async Task<Category> GetByName(string name)
+    {
+        return await _categories
+            .FirstOrDefaultAsync(c => c.Name.ToLower() == name.ToLower());
     }
 
     public async Task<Category> CreateAsync(Category entity)

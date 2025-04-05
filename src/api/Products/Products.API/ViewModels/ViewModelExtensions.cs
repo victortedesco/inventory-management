@@ -10,7 +10,6 @@ public static class ViewModelExtensions
         {
             Id = category.Id,
             Name = category.Name,
-            Products = category.Products?.Select(ToViewModel)
         };
     }
 
@@ -28,7 +27,7 @@ public static class ViewModelExtensions
             Image = product.Image,
             UnitPrice = product.UnitPrice,
             Quantity = product.Quantity,
-            CategoryId = product.CategoryId,
+            Category = product.Category.ToViewModel(),
         };
     }
 

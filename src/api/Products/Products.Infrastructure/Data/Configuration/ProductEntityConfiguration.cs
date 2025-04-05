@@ -16,6 +16,9 @@ internal class ProductEntityConfiguration : IEntityTypeConfiguration<Product>
             .IsRequired()
             .HasMaxLength(100);
 
+        builder.HasIndex(b => b.Name)
+            .IsUnique();
+
         builder.Property(b => b.CreatedBy)
             .IsRequired();
 
@@ -23,11 +26,11 @@ internal class ProductEntityConfiguration : IEntityTypeConfiguration<Product>
             .IsRequired();
 
         builder.Property(b => b.CreatedAt)
-             .HasDefaultValueSql("GETUTCDATE()")
+             .HasDefaultValueSql("CURRENT_TIMESTAMP")
              .ValueGeneratedOnAdd();
 
         builder.Property(b => b.UpdatedAt)
-            .HasDefaultValueSql("GETUTCDATE()")
+            .HasDefaultValueSql("CURRENT_TIMESTAMP")
             .ValueGeneratedOnAddOrUpdate();
 
         builder.Property(p => p.Image)

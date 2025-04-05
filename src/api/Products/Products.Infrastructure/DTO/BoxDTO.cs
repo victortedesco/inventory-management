@@ -1,3 +1,6 @@
 ﻿namespace Products.Infrastructure.DTO;
 
-public record BoxDTO();
+public class BoxDTO
+{
+
+}

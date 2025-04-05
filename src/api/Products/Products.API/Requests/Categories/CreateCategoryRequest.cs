@@ -1,3 +1,3 @@
-﻿namespace Products.API.Requests;
+﻿namespace Products.API.Requests.Categories;
 
 public record CreateCategoryRequest(string Name);

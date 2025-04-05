@@ -1,9 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Products.API.Requests;
+using Products.API.Requests.Categories;
 using Products.API.ViewModels;
 using Products.Infrastructure.DTO;
 using Products.Infrastructure.Services.Interfaces;
+using System.Security.Claims;
 
 namespace Products.API.Controllers;
 
@@ -15,8 +17,9 @@ public class CategoryController(ICategoryService categoryService) : ControllerBa
     private readonly ICategoryService _categoryService = categoryService;
 
     [HttpGet]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<CategoryViewModel>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll([FromQuery] Pagination pagination)
     {
         var categories = await _categoryService.GetAllAsync(pagination.Skip, pagination.Take);
@@ -24,10 +27,11 @@ public class CategoryController(ICategoryService categoryService) : ControllerBa
         if (!categories.Any())
             return NoContent();
 
-        return Ok(categories);
+        return Ok(categories.ToViewModel());
     }
 
     [HttpGet("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(CategoryViewModel), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetById(int id)
@@ -37,16 +41,16 @@ public class CategoryController(ICategoryService categoryService) : ControllerBa
         if (category is null)
             return NotFound();
 
-        return Ok(category);
+        return Ok(category.ToViewModel());
     }
 
     [HttpPost]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(IEnumerable<string>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(CategoryViewModel), StatusCodes.Status201Created)]
     public async Task<IActionResult> Create([FromBody] CreateCategoryRequest category)
     {
-        var userId = HttpContext.User.FindFirst("sub")?.Value;
+        var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value;
 
         if (userId is null)
             return Unauthorized();
@@ -54,18 +58,37 @@ public class CategoryController(ICategoryService categoryService) : ControllerBa
         var result = await _categoryService.CreateAsync(Guid.Parse(userId), new CategoryDTO { Name = category.Name });
 
         if (result.IsFailed)
-            return BadRequest(result.Errors);
+            return BadRequest(result.Errors.Select(e => e.Message));
 
-        return CreatedAtAction(nameof(GetById), new { id = result.Successes.First() }, category);
+        return CreatedAtAction(nameof(GetById), new { id = result.Value.Id }, result.Value.ToViewModel());
     }
 
-    [HttpPost("{categoryId:int}/product/{productId:guid}")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [HttpPut("{id:int}")]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(IEnumerable<string>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(CategoryViewModel), StatusCodes.Status200OK)]
+    public async Task<IActionResult> Update(int id, [FromBody] UpdateCategoryRequest category)
+    {
+        var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value;
+
+        if (userId is null)
+            return Unauthorized();
+
+        var result = await _categoryService.UpdateAsync(Guid.Parse(userId), new CategoryDTO { Id = id, Name = category.Name });
+
+        if (result.IsFailed)
+            return BadRequest(result.Errors.Select(e => e.Message));
+
+        return Ok(result.Value.ToViewModel());
+    }
+
+    [HttpPut("{categoryId:int}/products/{productId:guid}")]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(CategoryViewModel), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<string>), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> AddProduct(int categoryId, Guid productId)
     {
-        var userId = HttpContext.User.FindFirst("sub")?.Value;
+        var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value;
 
         if (userId is null)
             return Unauthorized();
@@ -73,18 +96,18 @@ public class CategoryController(ICategoryService categoryService) : ControllerBa
         var result = await _categoryService.AddProduct(Guid.Parse(userId), categoryId, productId);
 
         if (result.IsFailed)
-            return BadRequest(result.Errors);
+            return BadRequest(result.Errors.Select(e => e.Message));
 
-        return NoContent();
+        return Ok(result.Value.ToViewModel());
     }
 
-    [HttpDelete("{categoryId:int}/product/{productId:guid}")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [HttpDelete("{categoryId:int}/products/{productId:guid}")]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(CategoryViewModel), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<string>), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> RemoveProduct(int categoryId, Guid productId)
     {
-        var userId = HttpContext.User.FindFirst("sub")?.Value;
+        var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value;
 
         if (userId is null)
             return Unauthorized();
@@ -92,12 +115,13 @@ public class CategoryController(ICategoryService categoryService) : ControllerBa
         var result = await _categoryService.RemoveProduct(Guid.Parse(userId), categoryId, productId);
 
         if (result.IsFailed)
-            return BadRequest(result.Errors);
+            return BadRequest(result.Errors.Select(e => e.Message));
 
-        return NoContent();
+        return Ok(result.Value.ToViewModel());
     }
 
     [HttpDelete("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> Delete(int id)

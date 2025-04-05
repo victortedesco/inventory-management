@@ -22,6 +22,12 @@ public class ProductRepository(AppDbContext dbContext) : IProductRepository
         return await _products.FindAsync(id);
     }
 
+    public async Task<Product> GetByName(string name)
+    {
+        return await _products
+            .FirstOrDefaultAsync(p => p.Name.ToLower() == name.ToLower());
+    }
+
     public async Task<Product> CreateAsync(Product entity)
     {
         await _products.AddAsync(entity);
@@ -43,5 +49,5 @@ public class ProductRepository(AppDbContext dbContext) : IProductRepository
             return false;
         _products.Remove(entity);
         return await dbContext.SaveChangesAsync() > 0;
-    }    
+    }
 }

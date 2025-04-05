@@ -16,6 +16,9 @@ internal class CategoryEntityConfiguration : IEntityTypeConfiguration<Category>
             .IsRequired()
             .HasMaxLength(100);
 
+        builder.HasIndex(b => b.Name)
+            .IsUnique();
+
         builder.Property(b => b.CreatedBy)
             .IsRequired();
 
@@ -23,11 +26,11 @@ internal class CategoryEntityConfiguration : IEntityTypeConfiguration<Category>
             .IsRequired();
 
         builder.Property(b => b.CreatedAt)
-            .HasDefaultValueSql("GETUTCDATE()")
+            .HasDefaultValueSql("CURRENT_TIMESTAMP")
             .ValueGeneratedOnAdd();
 
         builder.Property(b => b.UpdatedAt)
-            .HasDefaultValueSql("GETUTCDATE()")
+            .HasDefaultValueSql("CURRENT_TIMESTAMP")
             .ValueGeneratedOnAddOrUpdate();
 
         builder.HasMany(c => c.Products)
