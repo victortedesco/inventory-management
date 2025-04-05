@@ -32,7 +32,7 @@ namespace Users.API.Migrations
                     b.Property<string>("Email")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("PasswordHash")
+                    b.Property<string>("Password")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Role")

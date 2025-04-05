@@ -6,11 +6,26 @@ public record UserViewModel(Guid Id, string UserName, string DisplayName, string
 {
     public static UserViewModel FromDTO(UserDTO dto)
     {
-        return new UserViewModel(dto.Id, dto.UserName, dto.DisplayName, dto.Email, dto.CPF, dto.Role);
+        return new UserViewModel(dto.Id, dto.UserName, dto.DisplayName, dto.Email, MaskCPF(dto.CPF), dto.Role);
     }
 
     public static IEnumerable<UserViewModel> FromDTO(IEnumerable<UserDTO> dtos)
     {
         return dtos.Select(FromDTO);
+    }
+
+    private static string MaskCPF(string cpf)
+    {
+        if (cpf.Length != 11)
+            return cpf;
+
+        var chars = cpf.ToCharArray();
+
+        for (int i = 3; i <= 8; i++)
+        {
+            chars[i] = 'X';
+        }
+
+        return new string(chars);
     }
 }

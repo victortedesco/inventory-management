@@ -11,7 +11,7 @@ using Users.API.Domain;
 namespace Users.API.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250401203317_FirstMigration")]
+    [Migration("20250405023427_FirstMigration")]
     partial class FirstMigration
     {
         /// <inheritdoc />
@@ -35,7 +35,7 @@ namespace Users.API.Migrations
                     b.Property<string>("Email")
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("PasswordHash")
+                    b.Property<string>("Password")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Role")

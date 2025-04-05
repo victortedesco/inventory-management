@@ -104,8 +104,8 @@ public class UserService(IUserRepository userRepository, IPasswordHasher passwor
             return Result.Fail(errors);
         }
 
-        user.PasswordHash = _passwordHasher.HashPassword(user.PasswordHash);
-        var newUser = new User(Guid.NewGuid(), user.UserName, user.DisplayName, user.Email, user.CPF, user.Role, user.PasswordHash);
+        user.Password = _passwordHasher.HashPassword(user.Password);
+        var newUser = new User(Guid.NewGuid(), user.UserName, user.DisplayName, user.Email, user.CPF, user.Role, user.Password);
 
         var result = await _userRepository.CreateAsync(newUser);
         return result ? Result.Ok().WithSuccess(newUser.Id.ToString()) : Result.Fail("Failed to create user");
@@ -161,8 +161,8 @@ public class UserService(IUserRepository userRepository, IPasswordHasher passwor
             return Result.Fail(errors);
         }
 
-        user.PasswordHash = _passwordHasher.HashPassword(user.PasswordHash);
-        var updatedUser = new User(user.Id, user.UserName, user.DisplayName, user.Email, user.CPF, user.Role, user.PasswordHash);
+        user.Password = _passwordHasher.HashPassword(user.Password);
+        var updatedUser = new User(user.Id, user.UserName, user.DisplayName, user.Email, user.CPF, user.Role, user.Password);
 
         var result = await _userRepository.UpdateAsync(updatedUser);
         return result ? Result.Ok() : Result.Fail("Failed to update user");

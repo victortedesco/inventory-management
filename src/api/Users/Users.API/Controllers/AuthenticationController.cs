@@ -16,6 +16,7 @@ public class AuthenticationController(IAuthenticationService authenticationServi
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
         var result = await _authenticationService.AuthenticateAsync(request.Identifier, request.Password);
+
         if (result.IsFailed)
             return Unauthorized(result.Errors.First().Message);
 

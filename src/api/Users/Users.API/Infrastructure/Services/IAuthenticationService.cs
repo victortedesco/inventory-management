@@ -29,7 +29,7 @@ public class AuthenticationService(IUserService userService, IPasswordHasher pas
         {
             return Result.Fail("User not found");
         }
-        if (!_passwordHasher.VerifyHashedPassword(user.PasswordHash, password))
+        if (!_passwordHasher.VerifyHashedPassword(user.Password, password))
         {
             return Result.Fail("Invalid password");
         }

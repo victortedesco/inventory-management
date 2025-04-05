@@ -8,9 +8,9 @@ public class User
     public string Email { get; private set; }
     public string CPF { get; private set; }
     public string Role { get; private set; }
-    public string PasswordHash { get; private set; }
+    public string Password { get; private set; }
 
-    public User(Guid id, string userName, string displayName, string email, string cpf, string role, string passwordHash)
+    public User(Guid id, string userName, string displayName, string email, string cpf, string role, string password)
     {
         Id = id;
         UserName = userName.Trim().ToLower();
@@ -32,7 +32,7 @@ public class User
             throw new ArgumentException("CPF must have 11 characters");
         }
         Role = role;
-        PasswordHash = passwordHash;
+        Password = password;
     }
 
     protected User() { }

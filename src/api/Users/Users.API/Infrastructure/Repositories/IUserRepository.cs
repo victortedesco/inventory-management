@@ -69,6 +69,7 @@ public class UserRepository(AppDbContext context) : IUserRepository
     public async Task<bool> DeleteAsync(Guid id)
     {
         var user = await GetByIdAsync(id);
+
         if (user is null)
             return false;
 

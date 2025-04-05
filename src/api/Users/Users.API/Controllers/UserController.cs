@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Users.API.Application.Requests;
 using Users.API.Application.ViewModels;
 using Users.API.Infrastructure.DTO;
@@ -6,6 +7,7 @@ using Users.API.Infrastructure.Services;
 
 namespace Users.API.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/v1/users")]
 public class UserController(IUserService service) : ControllerBase
@@ -13,6 +15,7 @@ public class UserController(IUserService service) : ControllerBase
     private readonly IUserService _service = service;
 
     [HttpGet]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(IEnumerable<UserViewModel>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll()
@@ -26,6 +29,7 @@ public class UserController(IUserService service) : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(UserViewModel), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetById(Guid id)
@@ -39,6 +43,7 @@ public class UserController(IUserService service) : ControllerBase
     }
 
     [HttpGet("user/{userName:minlength(3):minlength(16)}")]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(UserViewModel), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetByUserName(string userName)
@@ -52,6 +57,7 @@ public class UserController(IUserService service) : ControllerBase
     }
 
     [HttpGet("email/{email:minlength(10):minlength(50)}")]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(UserViewModel), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetByEmail(string email)
@@ -65,6 +71,7 @@ public class UserController(IUserService service) : ControllerBase
     }
 
     [HttpGet("cpf/{cpf:minlength(11)}")]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(UserViewModel), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetByCPF(string cpf)
@@ -77,7 +84,8 @@ public class UserController(IUserService service) : ControllerBase
         return Ok(UserViewModel.FromDTO(user));
     }
 
-    [HttpGet("displayName/{displayName:minlength(5):maxlength(32)}")]
+    [HttpGet("displayName/{displayName:maxlength(32)}")]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(IEnumerable<UserViewModel>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetByDisplayName(string displayName)
@@ -91,45 +99,68 @@ public class UserController(IUserService service) : ControllerBase
     }
 
     [HttpPost]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(IEnumerable<string>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status201Created)]
-    public async Task<IActionResult> Add([FromBody] UpdateUserRequest request)
+    public async Task<IActionResult> Add([FromBody] CreateUserRequest request)
     {
-        var dto = new UserDTO(default, request.UserName, request.DisplayName, request.Email, request.CPF, default, request.Password);
+        var dto = new UserDTO
+        {
+            UserName = request.UserName,
+            DisplayName = request.DisplayName,
+            Email = request.Email,
+            CPF = request.CPF,
+            Password = request.Password
+        };
 
         var result = await _service.CreateAsync(dto);
 
         if (result.IsFailed)
             return BadRequest(result.Errors.Select(e => e.Message));
 
-        return CreatedAtAction(nameof(GetById), new { id = result.Successes.First() }, result.Successes.First());
+        return CreatedAtAction(nameof(GetById), new { id = result.Successes.First().Message }, result.Successes.First().Message);
     }
 
     [HttpPut("{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(IEnumerable<string>), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateUserRequest request)
     {
-        var dto = new UserDTO(id, request.UserName, request.DisplayName, request.Email, request.CPF, default, request.Password);
+        var dto = new UserDTO
+        {
+            Id = id,
+            UserName = request.UserName,
+            DisplayName = request.DisplayName,
+            Email = request.Email,
+            CPF = request.CPF,
+            Password = request.Password
+        };
         var result = await _service.UpdateAsync(dto);
 
         if (result.IsFailed)
             return BadRequest(result.Errors.Select(e => e.Message));
 
-        return Ok();
+        return NoContent();
     }
 
     [HttpDelete("{id:guid}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(Guid id)
     {
+        var userRole = User.Claims.FirstOrDefault(c => c.Type == "role")?.Value;
+
+        if (userRole != "admin")
+            return Forbid();
+
         var result = await _service.DeleteAsync(id);
 
         if (!result)
             return NotFound();
 
-        return Ok();
+        return NoContent();
     }
 }
