@@ -42,7 +42,7 @@ function LoginPage() {
     <div className="flex items-center justify-center min-h-screen bg-green-50 relative">
     <button
         onClick={() => window.location.href = "/"}
-        className="cursor-pointer absolute right-4 top-4 bg-red-800 text-white p-2 rounded-md hover:bg-green-700"
+        className="cursor-pointer absolute right-4 top-4 bg-green-800 text-white p-2 rounded-md hover:bg-green-700"
     >
         Voltar
     </button>
