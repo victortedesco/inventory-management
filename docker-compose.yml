@@ -1,0 +1,13 @@
+services:
+  postgres:
+    image: postgres
+    volumes:
+       - postgres:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: inventory
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD?error}
+    ports:
+      - "5432:5432"
+
+volumes:
+  postgres:
