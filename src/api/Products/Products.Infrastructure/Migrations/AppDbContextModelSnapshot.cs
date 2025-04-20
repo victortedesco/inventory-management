@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Products.Infrastructure.Data;
 
 #nullable disable
@@ -15,54 +16,61 @@ namespace Products.Infrastructure.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "9.0.3");
+            modelBuilder
+                .HasAnnotation("ProductVersion", "9.0.3")
+                .HasAnnotation("Relational:MaxIdentifierLength", 63);
+
+            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("Products.Domain.Models.Box", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT")
+                        .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<Guid>("CreatedBy")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<float>("Depth")
-                        .HasColumnType("REAL");
+                        .HasColumnType("real");
 
                     b.Property<decimal>("Discount")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<float>("Height")
-                        .HasColumnType("REAL");
+                        .HasColumnType("real");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(100)");
 
-                    b.Property<uint>("Quantity")
-                        .HasColumnType("INTEGER");
+                    b.Property<long>("Quantity")
+                        .HasColumnType("bigint");
 
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("TEXT")
+                        .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<Guid>("UpdatedBy")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<float>("Weight")
-                        .HasColumnType("REAL");
+                        .HasColumnType("real");
 
                     b.Property<float>("Width")
-                        .HasColumnType("REAL");
+                        .HasColumnType("real");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
 
                     b.ToTable("Boxes", (string)null);
                 });
@@ -71,30 +79,35 @@ namespace Products.Infrastructure.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT")
+                        .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<Guid>("CreatedBy")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(100)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("TEXT")
+                        .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<Guid>("UpdatedBy")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
 
                     b.ToTable("Categories", (string)null);
                 });
@@ -103,35 +116,35 @@ namespace Products.Infrastructure.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<Guid?>("BoxId")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<int?>("CategoryId")
-                        .HasColumnType("INTEGER");
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT")
+                        .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<Guid>("CreatedBy")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Image")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasColumnType("text");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("TEXT");
+                        .HasColumnType("character varying(100)");
 
-                    b.Property<uint>("Quantity")
+                    b.Property<long>("Quantity")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasDefaultValue(0u);
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(0L);
 
                     b.Property<decimal>("UnitPrice")
                         .ValueGeneratedOnAdd()
@@ -140,17 +153,20 @@ namespace Products.Infrastructure.Migrations
 
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("TEXT")
+                        .HasColumnType("timestamp with time zone")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<Guid>("UpdatedBy")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
                     b.HasIndex("BoxId");
 
                     b.HasIndex("CategoryId");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
 
                     b.ToTable("Products", (string)null);
                 });

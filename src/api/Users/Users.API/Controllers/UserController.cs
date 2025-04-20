@@ -98,6 +98,7 @@ public class UserController(IUserService service) : ControllerBase
         return Ok(UserViewModel.FromDTO(users));
     }
 
+    [AllowAnonymous]
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(IEnumerable<string>), StatusCodes.Status400BadRequest)]

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Polly;
 using System.Text;
 using Users.API.Domain;
 using Users.API.Infrastructure;
@@ -73,8 +74,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
 });
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-    options.UseSqlite("Data Source=Users.db");
+    var password = builder.Environment.IsProduction() ? Environment.GetEnvironmentVariable("POSTGRES_PASSWORD") : "Development";
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection").Replace("${POSTGRES_PASSWORD}", password);
+
+    options.UseNpgsql(connectionString);
 });
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
@@ -96,4 +99,29 @@ app.UseCors();
 
 app.MapControllers();
 
+_ = Task.Run(() => ExecuteMigrationsPeriodically(app));
+
 app.Run();
+
+static async Task ExecuteMigrationsPeriodically(WebApplication app)
+{
+    var retryPolicy = Policy
+        .Handle<Exception>()
+        .WaitAndRetryForeverAsync(retryAttempt =>
+        {
+            return TimeSpan.FromSeconds(5);
+        });
+
+    await retryPolicy.ExecuteAsync(async () =>
+    {
+        using var scope = app.Services.CreateScope();
+
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        var pendingMigrations = await dbContext.Database.GetPendingMigrationsAsync();
+        if (pendingMigrations.Any())
+        {
+            await dbContext.Database.MigrateAsync();
+        }
+    });
+}

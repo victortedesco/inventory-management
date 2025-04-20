@@ -15,13 +15,13 @@ namespace Users.API.Migrations
                 name: "Users",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                    UserName = table.Column<string>(type: "TEXT", nullable: true),
-                    DisplayName = table.Column<string>(type: "TEXT", nullable: true),
-                    Email = table.Column<string>(type: "TEXT", nullable: true),
-                    CPF = table.Column<string>(type: "TEXT", nullable: true),
-                    Role = table.Column<string>(type: "TEXT", nullable: true),
-                    Password = table.Column<string>(type: "TEXT", nullable: true)
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    UserName = table.Column<string>(type: "text", nullable: true),
+                    DisplayName = table.Column<string>(type: "text", nullable: true),
+                    Email = table.Column<string>(type: "text", nullable: true),
+                    CPF = table.Column<string>(type: "text", nullable: true),
+                    Role = table.Column<string>(type: "text", nullable: true),
+                    Password = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {

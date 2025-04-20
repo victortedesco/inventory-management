@@ -1,8 +1,11 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Polly;
 using Products.API;
 using Products.Infrastructure;
+using Products.Infrastructure.Data;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -62,7 +65,11 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 builder.Services.AddSwaggerGen();
-builder.Services.AddInfrastructure(builder.Configuration);
+
+var password = builder.Environment.IsProduction() ? Environment.GetEnvironmentVariable("POSTGRES_PASSWORD") : "Development";
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection").Replace("${POSTGRES_PASSWORD}", password);
+
+builder.Services.AddInfrastructure(connectionString);
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(builder =>
@@ -85,4 +92,31 @@ app.UseCors();
 
 app.MapControllers();
 
+_ = Task.Run(() => ExecuteMigrationsPeriodically(app));
+
 app.Run();
+
+static async Task ExecuteMigrationsPeriodically(WebApplication app)
+{
+    await Task.Delay(TimeSpan.FromSeconds(5));
+
+    var retryPolicy = Policy
+        .Handle<Exception>()
+        .WaitAndRetryForeverAsync(retryAttempt =>
+        {
+            return TimeSpan.FromSeconds(5);
+        });
+
+    await retryPolicy.ExecuteAsync(async () =>
+    {
+        using var scope = app.Services.CreateScope();
+
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        var pendingMigrations = await dbContext.Database.GetPendingMigrationsAsync();
+        if (pendingMigrations.Any())
+        {
+            await dbContext.Database.MigrateAsync();
+        }
+    });
+}

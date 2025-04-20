@@ -11,9 +11,9 @@ public class CategoryService(ICategoryRepository categoryRepository, IProductRep
     private readonly ICategoryRepository _categoryRepository = categoryRepository;
     private readonly IProductRepository _productRepository = productRepository;
 
-    public async Task<IEnumerable<CategoryDTO>> GetAllAsync(int skip, int take)
+    public async Task<IEnumerable<CategoryDTO>> GetAllAsync(int skip, int take, string name)
     {
-        var categories = await _categoryRepository.GetAllAsync(skip, take);
+        var categories = await _categoryRepository.GetAllAsync(skip, take, name);
         return categories.ToDTO();
     }
 
@@ -23,7 +23,7 @@ public class CategoryService(ICategoryRepository categoryRepository, IProductRep
         return category?.ToDTO();
     }
 
-    public async Task<CategoryDTO> GetByName(string name)
+    public async Task<CategoryDTO> GetByNameAsync(string name)
     {
         var category = await _categoryRepository.GetByNameAsync(name);
         return category?.ToDTO();
@@ -31,7 +31,7 @@ public class CategoryService(ICategoryRepository categoryRepository, IProductRep
 
     public async Task<Result<CategoryDTO>> CreateAsync(Guid createdBy, CategoryDTO entity)
     {
-        if (await _categoryRepository.GetByNameAsync(entity.Name) is not null)
+        if (await GetByNameAsync(entity.Name) is not null)
             return Result.Fail("Category already exists");
         if (string.IsNullOrWhiteSpace(entity.Name))
             return Result.Fail("Category name is required");

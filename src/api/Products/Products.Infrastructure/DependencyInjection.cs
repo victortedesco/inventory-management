@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Products.Domain.Repositories;
 using Products.Infrastructure.Data;
@@ -11,12 +10,12 @@ namespace Products.Infrastructure;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services, string connectionString)
     {
         services.AddDbContext<AppDbContext>(options =>
         {
-            var connectionString = configuration.GetConnectionString("DefaultConnection");
-            options.UseSqlite("Data Source=Products.db");
+
+            options.UseNpgsql(connectionString);
         });
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<IProductRepository, ProductRepository>();
