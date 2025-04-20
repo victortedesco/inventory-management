@@ -2,7 +2,7 @@
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
-namespace Users.API.Infrastructure;
+namespace Users.API;
 
 public class DateOnlySchemaFilter : ISchemaFilter
 {
@@ -12,7 +12,7 @@ public class DateOnlySchemaFilter : ISchemaFilter
         {
             schema.Type = "string";
             schema.Format = "date";
-            schema.Example = new OpenApiString("2024-11-07");
+            schema.Example = new OpenApiString("2025-04-04");
         }
     }
 }

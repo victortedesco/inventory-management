@@ -1,4 +1,32 @@
 services:
+  web:
+    build:
+      context: .
+      dockerfile: /src/web/Dockerfile
+    ports:
+      - "80:80"
+    environment:
+      PRODUCT_API_URL: http://product-api:8080
+      USER_API_URL: http://user-api:8080
+    depends_on:
+      - product.api
+      - user.api
+  product.api:
+    build:
+      context: .
+      dockerfile: /src/api/Products/Products.API/Dockerfile
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD?error}
+    depends_on:
+      - postgres
+  user.api:
+    build:
+      context: .
+      dockerfile: /src/api/Users/Users.API/Dockerfile
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD?error}
+    depends_on:
+      - postgres
   postgres:
     image: postgres
     volumes:

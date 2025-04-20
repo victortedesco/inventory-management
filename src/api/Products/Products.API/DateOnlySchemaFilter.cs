@@ -12,7 +12,7 @@ public class DateOnlySchemaFilter : ISchemaFilter
         {
             schema.Type = "string";
             schema.Format = "date";
-            schema.Example = new OpenApiString("2025-04-04");
+            schema.Example = new OpenApiString("2025-04-19");
         }
     }
 }

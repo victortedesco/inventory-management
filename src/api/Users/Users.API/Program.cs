@@ -4,8 +4,8 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Polly;
 using System.Text;
+using Users.API;
 using Users.API.Domain;
-using Users.API.Infrastructure;
 using Users.API.Infrastructure.Repositories;
 using Users.API.Infrastructure.Services;
 
@@ -20,7 +20,7 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SchemaFilter<DateOnlySchemaFilter>();
 
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Inventory Management - Users API", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Inventory Management - User API", Version = "v1" });
 
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
