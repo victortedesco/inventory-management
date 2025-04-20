@@ -9,11 +9,13 @@ public class ProductRepository(AppDbContext dbContext) : IProductRepository
 {
     private readonly DbSet<Product> _products = dbContext.Products;
 
-    public async Task<IEnumerable<Product>> GetAllAsync(int skip, int take)
+    public async Task<IEnumerable<Product>> GetAllAsync(int skip, int take, string name)
     {
         return await _products
+            .OrderByDescending(p => p.CreatedAt)
             .Skip(skip)
             .Take(take)
+            .Where(p => string.IsNullOrEmpty(name) || p.Name.ToLower().Contains(name.ToLower()))
             .ToListAsync();
     }
 
@@ -22,24 +24,18 @@ public class ProductRepository(AppDbContext dbContext) : IProductRepository
         return await _products.FindAsync(id);
     }
 
-    public async Task<Product> GetByName(string name)
-    {
-        return await _products
-            .FirstOrDefaultAsync(p => p.Name.ToLower() == name.ToLower());
-    }
-
     public async Task<Product> CreateAsync(Product entity)
     {
-        await _products.AddAsync(entity);
+        var result = await _products.AddAsync(entity);
         await dbContext.SaveChangesAsync();
-        return entity;
+        return result.Entity;
     }
 
     public async Task<Product> UpdateAsync(Product entity)
     {
-        _products.Update(entity);
+        var result = _products.Update(entity);
         await dbContext.SaveChangesAsync();
-        return entity;
+        return result.Entity;
     }
 
     public async Task<bool> DeleteAsync(Guid id)

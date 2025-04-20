@@ -25,13 +25,13 @@ public class CategoryService(ICategoryRepository categoryRepository, IProductRep
 
     public async Task<CategoryDTO> GetByName(string name)
     {
-        var category = await _categoryRepository.GetByName(name);
+        var category = await _categoryRepository.GetByNameAsync(name);
         return category?.ToDTO();
     }
 
     public async Task<Result<CategoryDTO>> CreateAsync(Guid createdBy, CategoryDTO entity)
     {
-        if (await _categoryRepository.GetByName(entity.Name) is not null)
+        if (await _categoryRepository.GetByNameAsync(entity.Name) is not null)
             return Result.Fail("Category already exists");
         if (string.IsNullOrWhiteSpace(entity.Name))
             return Result.Fail("Category name is required");
@@ -65,7 +65,7 @@ public class CategoryService(ICategoryRepository categoryRepository, IProductRep
         if (existingEntity is null)
             return Result.Fail("Category does not exists");
 
-        if (await _categoryRepository.GetByName(entity.Name) is not null && !existingEntity.Name.Equals(entity.Name, StringComparison.CurrentCultureIgnoreCase))
+        if (await _categoryRepository.GetByNameAsync(entity.Name) is not null && !existingEntity.Name.Equals(entity.Name, StringComparison.CurrentCultureIgnoreCase))
             return Result.Fail("Category already exists");
 
         existingEntity.Name = entity.Name.Trim();

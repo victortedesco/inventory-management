@@ -9,12 +9,13 @@ public class CategoryRepository(AppDbContext dbContext) : ICategoryRepository
 {
     private readonly DbSet<Category> _categories = dbContext.Categories;
 
-    public async Task<IEnumerable<Category>> GetAllAsync(int skip, int take)
+    public async Task<IEnumerable<Category>> GetAllAsync(int skip, int take, string name)
     {
         return await _categories
-            .OrderBy(c => c.Id)
+            .OrderByDescending(c => c.CreatedAt)
             .Skip(skip)
             .Take(take)
+            .Where(c => string.IsNullOrEmpty(name) || c.Name.ToLower().Contains(name.ToLower()))
             .ToListAsync();
     }
 
@@ -23,24 +24,18 @@ public class CategoryRepository(AppDbContext dbContext) : ICategoryRepository
         return await _categories.FindAsync(id);
     }
 
-    public async Task<Category> GetByName(string name)
-    {
-        return await _categories
-            .FirstOrDefaultAsync(c => c.Name.ToLower() == name.ToLower());
-    }
-
     public async Task<Category> CreateAsync(Category entity)
     {
-        await _categories.AddAsync(entity);
+        var result = await _categories.AddAsync(entity);
         await dbContext.SaveChangesAsync();
-        return entity;
+        return result.Entity;
     }
 
     public async Task<Category> UpdateAsync(Category entity)
     {
-        _categories.Update(entity);
+        var result = _categories.Update(entity);
         await dbContext.SaveChangesAsync();
-        return entity;
+        return result.Entity;
     }
 
     public async Task<bool> DeleteAsync(int id)

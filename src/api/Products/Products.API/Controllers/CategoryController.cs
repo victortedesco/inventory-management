@@ -22,7 +22,7 @@ public class CategoryController(ICategoryService categoryService) : ControllerBa
     [ProducesResponseType(typeof(IEnumerable<CategoryViewModel>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll([FromQuery] Pagination pagination)
     {
-        var categories = await _categoryService.GetAllAsync(pagination.Skip, pagination.Take);
+        var categories = await _categoryService.GetAllAsync(pagination.Skip, pagination.Take, pagination.Name);
 
         if (!categories.Any())
             return NoContent();
