@@ -53,12 +53,16 @@ public class CategoryService(ICategoryRepository categoryRepository, IProductRep
 
     public async Task<Result<CategoryDTO>> UpdateAsync(Guid updatedBy, CategoryDTO entity)
     {
+        var errors = new List<string>();
         if (string.IsNullOrWhiteSpace(entity.Name))
-            return Result.Fail("Category name is required");
+            errors.Add("Category name is required");
         if (entity.Name.Length < 3)
-            return Result.Fail("Category name must be at least 3 characters long");
+            errors.Add("Category name must be at least 3 characters long");
         if (entity.Name.Length > 50)
-            return Result.Fail("Category name must be at most 50 characters long");
+            errors.Add("Category name must be at most 50 characters long");
+
+        if (errors.Count != 0)
+            return Result.Fail(errors);
 
         var existingEntity = await _categoryRepository.GetByIdAsync(entity.Id);
 
@@ -86,17 +90,17 @@ public class CategoryService(ICategoryRepository categoryRepository, IProductRep
 
     public async Task<Result<CategoryDTO>> AddProduct(Guid updatedBy, int categoryId, Guid productId)
     {
-        var errors = new List<Error>();
+        var errors = new List<string>();
 
         var category = await _categoryRepository.GetByIdAsync(categoryId);
 
         if (category is null)
-            errors.Add(new Error("Category does not exists"));
+            errors.Add("Category does not exists");
 
         var product = await _productRepository.GetByIdAsync(productId);
 
         if (product is null)
-            errors.Add(new Error("Product does not exists"));
+            errors.Add("Product does not exists");
 
         if (errors.Count > 0)
             return Result.Fail(errors);
@@ -107,24 +111,24 @@ public class CategoryService(ICategoryRepository categoryRepository, IProductRep
         var result = await _categoryRepository.UpdateAsync(category);
 
         if (result is null)
-            return Result.Fail("Could not add product from category");
+            return Result.Fail("Could not add product to category");
 
         return Result.Ok(result.ToDTO());
     }
 
     public async Task<Result<CategoryDTO>> RemoveProduct(Guid updatedBy, int categoryId, Guid productId)
     {
-        var errors = new List<Error>();
+        var errors = new List<string>();
 
         var category = await _categoryRepository.GetByIdAsync(categoryId);
 
         if (category is null)
-            errors.Add(new Error("Category does not exists"));
+            errors.Add("Category does not exists");
 
         var product = await _productRepository.GetByIdAsync(productId);
 
         if (product is null)
-            errors.Add(new Error("Product does not exists"));
+            errors.Add("Product does not exists");
 
         if (errors.Count > 0)
             return Result.Fail(errors);

@@ -9,9 +9,3 @@ public class Product : IEntity<Guid>
 
     public Product() { }
 }
-
-public enum ImageType
-{
-    Base64,
-    URL
-}

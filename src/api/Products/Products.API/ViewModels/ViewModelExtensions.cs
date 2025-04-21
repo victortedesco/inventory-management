@@ -27,7 +27,7 @@ public static class ViewModelExtensions
             Image = product.Image,
             UnitPrice = product.UnitPrice,
             Quantity = product.Quantity,
-            Category = product.Category.ToViewModel(),
+            Category = product.Category?.ToViewModel(),
         };
     }
 

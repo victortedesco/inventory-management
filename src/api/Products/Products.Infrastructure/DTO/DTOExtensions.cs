@@ -13,7 +13,7 @@ public static class DTOExtensions
             Image = product.Image,
             UnitPrice = product.UnitPrice,
             Quantity = product.Quantity,
-            Category = product.Category.ToDTO()
+            Category = product.Category?.ToDTO()
         };
     }
 
@@ -34,5 +34,27 @@ public static class DTOExtensions
     public static IEnumerable<CategoryDTO> ToDTO(this IEnumerable<Category> categories)
     {
         return categories.Select(ToDTO);
+    }
+
+    public static BoxDTO ToDTO(this Box box)
+    {
+        return new BoxDTO
+        {
+            Id = box.Id,
+            Name = box.Name,
+            Discount = box.Discount,
+            UnitPrice = box.Products.Sum(p => p.UnitPrice),
+            Quantity = box.Quantity,
+            Weight = box.Weight,
+            Depth = box.Depth,
+            Height = box.Height,
+            Width = box.Width,
+            Products = box.Products.ToDTO(),
+        };
+    }
+
+    public static IEnumerable<BoxDTO> ToDTO(this IEnumerable<Box> boxes)
+    {
+        return boxes.Select(ToDTO);
     }
 }

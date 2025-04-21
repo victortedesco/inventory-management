@@ -19,8 +19,10 @@ public static class DependencyInjection
         });
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<IProductRepository, ProductRepository>();
-        //services.AddScoped<IBoxRepository, BoxRepository>();
+        services.AddScoped<IBoxRepository, BoxRepository>();
         services.AddScoped<ICategoryService, CategoryService>();
+        services.AddScoped<IProductService, ProductService>();
+        services.AddScoped<IBoxService, BoxService>();
         return services;
     }
 }
