@@ -69,6 +69,11 @@ builder.Services.AddSwaggerGen();
 var password = builder.Environment.IsProduction() ? Environment.GetEnvironmentVariable("POSTGRES_PASSWORD") : "Development";
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection").Replace("${POSTGRES_PASSWORD}", password);
 
+if (builder.Environment.IsProduction())
+{
+    connectionString = connectionString.Replace("localhost", "postgres");
+}
+
 builder.Services.AddInfrastructure(connectionString);
 builder.Services.AddCors(options =>
 {

@@ -76,7 +76,10 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 {
     var password = builder.Environment.IsProduction() ? Environment.GetEnvironmentVariable("POSTGRES_PASSWORD") : "Development";
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection").Replace("${POSTGRES_PASSWORD}", password);
-
+    if (builder.Environment.IsProduction())
+    {
+        connectionString = connectionString.Replace("localhost", "postgres");
+    }
     options.UseNpgsql(connectionString);
 });
 builder.Services.AddScoped<IUserRepository, UserRepository>();
