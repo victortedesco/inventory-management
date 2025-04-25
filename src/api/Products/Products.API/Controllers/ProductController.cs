@@ -30,6 +30,20 @@ public class ProductController(IProductService productService) : ControllerBase
         return Ok(products.ToViewModel());
     }
 
+    [HttpGet("category/{categoryId:int}")]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(IEnumerable<ProductViewModel>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetByCategoryId(int categoryId, [FromQuery] Pagination pagination)
+    {
+        var products = await _productService.GetByCategoryIdAsync(categoryId, pagination.Skip, pagination.Take, pagination.Name);
+
+        if (!products.Any())
+            return NoContent();
+
+        return Ok(products.ToViewModel());
+    }
+
     [HttpGet("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

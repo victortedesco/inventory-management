@@ -23,6 +23,12 @@ public class ProductService(IProductRepository productRepository, ICategoryRepos
         return product?.ToDTO();
     }
 
+    public async Task<IEnumerable<ProductDTO>> GetByCategoryIdAsync(int categoryId, int skip, int take, string name)
+    {
+        var products = await _productRepository.GetByCategoryIdAsync(categoryId, skip, take, name);
+        return products.Select(p => p.ToDTO());
+    }
+
     public async Task<Result<ProductDTO>> CreateAsync(Guid createdBy, ProductDTO entity)
     {
         var errors = new List<string>();

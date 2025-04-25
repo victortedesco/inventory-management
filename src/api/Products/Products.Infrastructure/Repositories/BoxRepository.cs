@@ -15,19 +15,21 @@ public class BoxRepository(AppDbContext dbContext) : IBoxRepository
             .OrderByDescending(c => c.CreatedAt)
             .Skip(skip)
             .Take(take)
-            .Where(c => string.IsNullOrEmpty(name) || c.Name.ToLower().Contains(name.ToLower()))
+            .Include(b => b.Products)
+            .Where(b => string.IsNullOrEmpty(name) || b.Name.ToLower().Contains(name.ToLower()))
             .ToListAsync();
     }
 
     public async Task<Box> GetByIdAsync(Guid id)
     {
-        return await _boxes.FindAsync(id);
+        return await _boxes.Include(b => b.Products).FirstOrDefaultAsync(b => b.Id == id);
     }
 
     public async Task<Box> CreateAsync(Box entity)
     {
         var result = await _boxes.AddAsync(entity);
         await dbContext.SaveChangesAsync();
+        dbContext.Entry(result.Entity).Collection(b => b.Products).Load();
         return result.Entity;
     }
 
@@ -35,6 +37,7 @@ public class BoxRepository(AppDbContext dbContext) : IBoxRepository
     {
         var result = _boxes.Update(entity);
         await dbContext.SaveChangesAsync();
+        dbContext.Entry(result.Entity).Collection(b => b.Products).Load();
         return result.Entity;
     }
 

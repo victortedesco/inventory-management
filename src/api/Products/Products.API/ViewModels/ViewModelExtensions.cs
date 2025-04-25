@@ -35,4 +35,26 @@ public static class ViewModelExtensions
     {
         return products.Select(ToViewModel);
     }
+
+    public static BoxViewModel ToViewModel(this BoxDTO box)
+    {
+        return new BoxViewModel
+        {
+            Id = box.Id,
+            Name = box.Name,
+            Discount = box.Discount,
+            UnitPrice = box.UnitPrice,
+            Quantity = box.Quantity,
+            Weight = box.Weight,
+            Depth = box.Depth,
+            Height = box.Height,
+            Width = box.Width,
+            Products = box.Products.ToViewModel(),
+        };
+    }
+
+    public static IEnumerable<BoxViewModel> ToViewModel(this IEnumerable<BoxDTO> boxes)
+    {
+        return boxes.Select(ToViewModel);
+    }
 }
