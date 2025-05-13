@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Users.API.Application.Requests;
 using Users.API.Application.ViewModels;
@@ -98,6 +98,7 @@ public class UserController(IUserService service) : ControllerBase
         return Ok(UserViewModel.FromDTO(users));
     }
 
+    [AllowAnonymous]
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(IEnumerable<string>), StatusCodes.Status400BadRequest)]
