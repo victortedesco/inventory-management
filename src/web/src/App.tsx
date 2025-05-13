@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import './App.css'
 import { useNavigate } from 'react-router'
+import { DashBoard } from './components/DashBoard';
 
 function App() {
   const navigate = useNavigate();
@@ -14,6 +15,7 @@ function App() {
 
   return (
     <>
+    <DashBoard></DashBoard>
     </>
   )
 }

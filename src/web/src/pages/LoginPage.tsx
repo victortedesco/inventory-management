@@ -1,3 +1,4 @@
+import { login } from "@/services/auth.service";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 
@@ -15,24 +16,10 @@ export const LoginPage = () => {
     };
 
     try {
-      const response = await fetch("http://localhost:5173/login", {
-        method: "POST",
-        body: JSON.stringify(payload),
-        headers: { "Content-Type": "application/json" },
-      });
-
-      const token = await response.text();
-
-      console.log("Token recebida:", token);
-
-      if (!response.ok) {
-        console.log(
-          "Identificador ou senha errados. Verifique suas credenciais."
-        );
+      const token = await login(payload.identifier, payload.password);
+      if (!token) {
+        return;
       }
-
-      localStorage.setItem("token", token);
-
       navigate("/");
     } catch (err: any) {
       console.error(err);
@@ -88,4 +75,4 @@ export const LoginPage = () => {
       </div>
     </div>
   );
-}
+};
