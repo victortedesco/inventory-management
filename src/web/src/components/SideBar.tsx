@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   BookUser,
+  Boxes,
   Forklift,
   GalleryHorizontalEnd,
   History,
@@ -9,7 +10,7 @@ import {
 } from "lucide-react";
 import User, { formatCPF } from "@/models/user.model";
 import { decodeToken, logout } from "@/services/auth.service";
-import { getById } from "@/services/user.service";
+import { getUserById } from "@/services/user.service";
 import { useNavigate } from "react-router";
 
 interface SideBarProps {
@@ -22,16 +23,25 @@ export const SideBar = ({ isOpen, setIsOpen }: SideBarProps) => {
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    async function fetchUser() {
-      const token = localStorage.getItem("token");
-      const decodedToken = decodeToken(token);
-      if (!decodedToken) return logout();
-      const data = await getById(decodedToken.sub);
-      if (!data) return logout();
-      setUser(data as User);
+    const fetchUser = async (id: string) => {
+      const data = await getUserById(id);
+      if (!data) {
+        localStorage.removeItem("token");
+        logout();
+        return;
+      }
+
+      setUser(data);
+    };
+
+    const token = localStorage.getItem("token");
+    const decodedToken = decodeToken(token);
+    if (!decodedToken) {
+      logout();
+      return;
     }
 
-    fetchUser();
+    fetchUser(decodedToken.sub);
   }, []);
 
   const navItems = [
@@ -46,6 +56,7 @@ export const SideBar = ({ isOpen, setIsOpen }: SideBarProps) => {
       label: "Categorias",
       route: "/categories",
     },
+    { icon: <Boxes size={32} />, label: "Caixas", route: "/boxes" },
     { icon: <BookUser size={32} />, label: "Usuários", route: "/users" },
     { icon: <History size={32} />, label: "Histórico", route: "/history" },
   ];
@@ -88,7 +99,9 @@ export const SideBar = ({ isOpen, setIsOpen }: SideBarProps) => {
             <h1 className="font-bold text-gray-900">
               {user?.displayName ?? "Carregando..."}
             </h1>
-            <p className="text-sm text-gray-600">{formatCPF(user?.cpf) ?? "CPF Não Cadastrado"}</p>
+            <p className="text-sm text-gray-600">
+              {formatCPF(user?.cpf) ?? "CPF Não Cadastrado"}
+            </p>
             <p className="text-sm text-gray-600">{user?.role ?? "Usuário"}</p>
           </div>
         </div>
@@ -102,7 +115,7 @@ export const SideBar = ({ isOpen, setIsOpen }: SideBarProps) => {
                 navigate(item.route);
                 setIsOpen(false);
               }}
-              className="flex items-center gap-3 px-4 py-2 rounded-md hover:bg-gray-100 transition-colors text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-gray-300"
+              className="flex items-center gap-3 px-4 py-2 rounded-md hover:bg-gray-200 transition-colors text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-gray-300"
             >
               <span className="flex-shrink-0 text-color-3">{item.icon}</span>
               <span>{item.label}</span>
