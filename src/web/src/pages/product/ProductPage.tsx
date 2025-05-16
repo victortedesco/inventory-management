@@ -26,7 +26,7 @@ function ProductPage() {
     },
     { name: "Camisa", category: "Roupa", stock: 42, price: 35.0, icon: "👔" },
   ];
-  const totalItems = products.length;
+  const totalProducts = products.length;
   const totalStock = products.reduce((sum, product) => sum + product.stock, 0);
 
   const [showFilterOptions, setShowFilterOptions] = useState<boolean>(false);
@@ -73,7 +73,7 @@ function ProductPage() {
               <div className="text-center md:text-left mb-2 md:mb-0">
                 <h2 className="text-2xl md:text-lg font-semibold">Produtos</h2>
                 <p className="text-base md:text-sm">
-                  {totalItems} Itens cadastrados
+                  {totalProducts} produtos cadastrados
                 </p>
                 <p className="text-base md:text-sm">
                   Quantidade disponível: {totalStock}
