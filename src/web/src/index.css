@@ -3,6 +3,11 @@
 
 @custom-variant dark (&:is(.dark *));
 
+body {
+  font-family: "Roboto", sans-serif;
+  min-height: 100vh;
+}
+
 :root {
   --radius: 0.625rem;
   --background: oklch(1 0 0);
@@ -108,6 +113,11 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-color-1: #68b957;
+  --color-color-2: #4e9441;
+  --color-color-3: #346f2b;
+  --color-color-4: #1A4A16;
+  --color-color-5: #002500;
 }
 
 @layer base {

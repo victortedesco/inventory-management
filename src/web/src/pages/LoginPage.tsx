@@ -1,3 +1,4 @@
+import { login } from "@/services/auth.service";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 
@@ -15,24 +16,10 @@ export const LoginPage = () => {
     };
 
     try {
-      const response = await fetch("http://localhost:5173/login", {
-        method: "POST",
-        body: JSON.stringify(payload),
-        headers: { "Content-Type": "application/json" },
-      });
-
-      const token = await response.text();
-
-      console.log("Token recebida:", token);
-
-      if (!response.ok) {
-        console.log(
-          "Identificador ou senha errados. Verifique suas credenciais."
-        );
+      const token = await login(payload.identifier, payload.password);
+      if (!token) {
+        return;
       }
-
-      localStorage.setItem("token", token);
-
       navigate("/");
     } catch (err: any) {
       console.error(err);
@@ -42,11 +29,11 @@ export const LoginPage = () => {
   return (
     <div className="flex items-center justify-center min-h-screen bg-[url(/login-background.png)] bg-cover bg-no-repeat relative">
       <div className="w-full h-100 max-w-md p-8 space-y-6 bg-green-100 rounded-2xl shadow-lg shadow-black/30">
-        <h2 className="text-3xl font-bold text-center text-green-800">Login</h2>
+        <h2 className="text-3xl font-bold text-center text-green-800">Autenticação</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="p-2">
             <label className="text-left block text-lg font-medium text-green-700 ">
-              Nome/CPF/Usuário
+              Email, CPF ou Usuário
             </label>
             <input
               type="text"
@@ -55,7 +42,7 @@ export const LoginPage = () => {
               name="nome"
               required
               className="bg-white w-full p-2 mt-1 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/75 shadow-sm shadow-black/50"
-              placeholder="Insira seu Nome"
+              placeholder="Insira seu identificador"
             />
           </div>
           <div className="p-2">
@@ -70,7 +57,7 @@ export const LoginPage = () => {
                 name="password"
                 required
                 className="bg-white w-full p-2 mt-1 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/75 shadow-sm shadow-black/50"
-                placeholder="Insira sua Senha"
+                placeholder="Insira sua senha"
               />
             </div>
           </div>
@@ -88,4 +75,4 @@ export const LoginPage = () => {
       </div>
     </div>
   );
-}
+};
