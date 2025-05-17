@@ -8,7 +8,7 @@ import {
   PackageSearch,
   X,
 } from "lucide-react";
-import User, { formatCPF } from "@/models/user.model";
+import User, { maskCPF } from "@/models/user.model";
 import { decodeToken, logout } from "@/services/auth.service";
 import { getUserById } from "@/services/user.service";
 import { useNavigate } from "react-router";
@@ -100,7 +100,7 @@ export const SideBar = ({ isOpen, setIsOpen }: SideBarProps) => {
               {user?.displayName ?? "Carregando..."}
             </h1>
             <p className="text-sm text-gray-600">
-              {formatCPF(user?.cpf) ?? "CPF Não Cadastrado"}
+              {maskCPF(user?.cpf) ?? "CPF Não Cadastrado"}
             </p>
             <p className="text-sm text-gray-600">{user?.role ?? "Usuário"}</p>
           </div>
@@ -115,7 +115,7 @@ export const SideBar = ({ isOpen, setIsOpen }: SideBarProps) => {
                 navigate(item.route);
                 setIsOpen(false);
               }}
-              className="flex items-center gap-3 px-4 py-2 rounded-md hover:bg-gray-200 transition-colors text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-gray-300"
+              className="flex cursor-pointer items-center gap-3 px-4 py-2 rounded-md hover:bg-gray-200 transition-colors text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-gray-300"
             >
               <span className="flex-shrink-0 text-color-3">{item.icon}</span>
               <span>{item.label}</span>

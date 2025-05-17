@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Users.API.Domain;
 using Users.API.Domain.Models;
+using Users.API.Infrastructure.Data;
 
 namespace Users.API.Infrastructure.Repositories;
 
@@ -19,42 +19,53 @@ public interface IUserRepository
 
 public class UserRepository(AppDbContext context) : IUserRepository
 {
+    private readonly AppDbContext _context = context;
     private readonly DbSet<User> _users = context.Users;
 
     public async Task<IEnumerable<User>> GetAllAsync()
     {
-        return await _users.ToListAsync();
+        return await _users.Include(u => u.Role).ToListAsync();
     }
 
     public async Task<User> GetByIdAsync(Guid id)
     {
-        return await _users.FindAsync(id);
+        var user = await _users.FindAsync(id);
+        await _context.Entry(user).Reference(u => u.Role).LoadAsync();
+        return user;
     }
 
     public async Task<User> GetByUserNameAsync(string userName)
     {
-        return await _users.FirstOrDefaultAsync(u => u.UserName == userName);
+        var user = await _users.FirstOrDefaultAsync(u => u.UserName == userName);
+        await _context.Entry(user).Reference(u => u.Role).LoadAsync();
+        return user;
     }
 
     public async Task<User> GetByCPFAsync(string cpf)
     {
-        return await _users.FirstOrDefaultAsync(u => u.CPF == cpf);
+        var user = await _users.FirstOrDefaultAsync(u => u.CPF == cpf);
+        await _context.Entry(user).Reference(u => u.Role).LoadAsync();
+        return user;
     }
 
     public async Task<User> GetByEmailAsync(string email)
     {
-        return await _users.FirstOrDefaultAsync(u => u.Email == email);
+        var user = await _users.FirstOrDefaultAsync(u => u.Email == email);
+        await _context.Entry(user).Reference(u => u.Role).LoadAsync();
+        return user;
     }
 
     public async Task<IEnumerable<User>> GetByDisplayNameAsync(string displayName)
     {
-        return await _users.Where(u => u.DisplayName.Contains(displayName)).ToListAsync();
+        return await _users.Include(u => u.Role).Where(u => u.DisplayName.Contains(displayName)).ToListAsync();
     }
 
     public async Task<User> CreateAsync(User user)
     {
         var newUser = await _users.AddAsync(user);
-        await context.SaveChangesAsync();
+
+        await _context.SaveChangesAsync();
+        await _context.Entry(newUser.Entity).Reference(u => u.Role).LoadAsync();
 
         return newUser.Entity;
     }
@@ -65,7 +76,8 @@ public class UserRepository(AppDbContext context) : IUserRepository
             return null;
 
         var updatedUser = _users.Update(user);
-        await context.SaveChangesAsync();
+        await _context.SaveChangesAsync();
+        await _context.Entry(updatedUser.Entity).Reference(u => u.Role).LoadAsync();
 
         return updatedUser.Entity;
     }
@@ -78,6 +90,6 @@ public class UserRepository(AppDbContext context) : IUserRepository
             return false;
 
         _users.Remove(user);
-        return await context.SaveChangesAsync() > 0;
+        return await _context.SaveChangesAsync() > 0;
     }
 }

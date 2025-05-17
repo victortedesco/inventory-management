@@ -6,7 +6,7 @@ const formatSeconds = (seconds: number) => {
   return `${seconds} segundos`;
 };
 
-export const NotFoundPage = () => {
+const NotFoundPage = () => {
   const navigate = useNavigate();
   const [seconds, setSeconds] = useState<number>(5);
 
@@ -34,3 +34,5 @@ export const NotFoundPage = () => {
     </>
   );
 };
+
+export default NotFoundPage;

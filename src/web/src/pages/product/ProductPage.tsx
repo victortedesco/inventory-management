@@ -1,11 +1,17 @@
 import { SideBar } from "@/components/SideBar";
-import { Menu } from "lucide-react";
+import {
+  AArrowDown,
+  Banknote,
+  GalleryHorizontalEnd,
+  Hash,
+  Menu,
+} from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 
 type FilterOption = "name" | "category" | "quantity" | "price";
 
-function ProductPage() {
+const ProductPage = () => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -26,6 +32,7 @@ function ProductPage() {
     },
     { name: "Camisa", category: "Roupa", stock: 42, price: 35.0, icon: "👔" },
   ];
+  
   const totalProducts = products.length;
   const totalStock = products.reduce((sum, product) => sum + product.stock, 0);
 
@@ -37,12 +44,13 @@ function ProductPage() {
     setShowFilterOptions(false);
   };
 
-  const filterIcons: Record<FilterOption, string> = {
-    name: "🔤", // Nome do produto
-    category: "📂", // Categoria
-    quantity: "🔢", // Quantidade
-    price: "💰", // Preço
+  const filterIcons: Record<FilterOption, React.JSX.Element> = {
+    name: <AArrowDown size={24} />, //Nome do produto
+    category: <GalleryHorizontalEnd size={24} />, // Categoria
+    quantity: <Hash size={24} />, // Quantidade
+    price: <Banknote size={24} />, // Preço
   };
+
   return (
     <div className="flex min-h-screen">
       <div className="hidden md:block w-64 shrink-0">
@@ -134,7 +142,7 @@ function ProductPage() {
                 <button
                   type="button"
                   className="border p-1.5 rounded text-base"
-                  onClick={() => navigate("/create-product")}
+                  onClick={() => navigate("/product")}
                 >
                   + Itens
                 </button>
@@ -190,6 +198,6 @@ function ProductPage() {
       </div>
     </div>
   );
-}
+};
 
 export default ProductPage;

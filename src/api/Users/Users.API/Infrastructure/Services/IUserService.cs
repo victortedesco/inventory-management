@@ -18,9 +18,10 @@ public interface IUserService
     Task<bool> DeleteAsync(Guid id);
 }
 
-public class UserService(IUserRepository userRepository, IPasswordHasher passwordHasher) : IUserService
+public class UserService(IUserRepository userRepository, IRoleRepository roleRepository, IPasswordHasher passwordHasher) : IUserService
 {
     private readonly IUserRepository _userRepository = userRepository;
+    private readonly IRoleRepository _roleRepository = roleRepository;
     private readonly IPasswordHasher _passwordHasher = passwordHasher;
 
     public async Task<IEnumerable<UserDTO>> GetAllAsync()
@@ -61,43 +62,48 @@ public class UserService(IUserRepository userRepository, IPasswordHasher passwor
 
     public async Task<Result<UserDTO>> CreateAsync(UserDTO user)
     {
-        var errors = new List<Error>();
+        var errors = new List<string>();
 
+        var role = await _roleRepository.GetByNameAsync(user.Role);
+        if (role is null)
+        {
+            errors.Add("Role not found");
+        }
         if (await _userRepository.GetByUserNameAsync(user.UserName) is not null)
         {
-            errors.Add(new Error("User name already exists"));
+            errors.Add("User name already exists");
         }
         if (await _userRepository.GetByCPFAsync(user.CPF) is not null)
         {
-            errors.Add(new Error("CPF already exists"));
+            errors.Add("CPF already exists");
         }
         if (await _userRepository.GetByEmailAsync(user.Email) is not null)
         {
-            errors.Add(new Error("Email already exists"));
+            errors.Add("Email already exists");
         }
         if (!user.Email.Contains('@') && !user.Email.Contains('.'))
         {
-            errors.Add(new Error("Invalid email"));
+            errors.Add("Invalid email");
         }
         if (user.UserName.Contains('@'))
         {
-            errors.Add(new Error("User name cannot contain '@'"));
+            errors.Add("User name cannot contain '@'");
         }
         if (user.UserName.Contains('.'))
         {
-            errors.Add(new Error("User name cannot contain '.'"));
+            errors.Add("User name cannot contain '.'");
         }
         if (user.UserName.Length == 11 && user.UserName.All(char.IsDigit))
         {
-            errors.Add(new Error("User name cannot be a CPF"));
+            errors.Add("User name cannot be a CPF");
         }
         if (user.CPF.Length != 11)
         {
-            errors.Add(new Error("CPF must have 11 characters"));
+            errors.Add("CPF must have 11 characters");
         }
         if (!user.CPF.All(char.IsDigit))
         {
-            errors.Add(new Error("CPF must contain only numbers"));
+            errors.Add("CPF must contain only numbers");
         }
         if (errors.Count > 0)
         {
@@ -105,7 +111,7 @@ public class UserService(IUserRepository userRepository, IPasswordHasher passwor
         }
 
         user.Password = _passwordHasher.HashPassword(user.Password);
-        var newUser = new User(Guid.NewGuid(), user.UserName, user.DisplayName, user.Email, user.CPF, user.Role, user.Password);
+        var newUser = new User(Guid.NewGuid(), user.UserName, user.DisplayName, user.Email, user.CPF, role, user.Password);
 
         var result = await _userRepository.CreateAsync(newUser);
 
@@ -117,48 +123,53 @@ public class UserService(IUserRepository userRepository, IPasswordHasher passwor
 
     public async Task<Result<UserDTO>> UpdateAsync(UserDTO user)
     {
-        var errors = new List<Error>();
+        var errors = new List<string>();
         var existingUser = await _userRepository.GetByIdAsync(user.Id);
 
+        var role = await _roleRepository.GetByNameAsync(user.Role);
+        if (role is null)
+        {
+            errors.Add("Role not found");
+        }
         if (existingUser is null)
         {
             return Result.Fail("User not found");
         }
         if (await _userRepository.GetByCPFAsync(user.CPF) is not null && existingUser.CPF != user.CPF)
         {
-            errors.Add(new Error("CPF already exists"));
+            errors.Add("CPF already exists");
         }
         if (await _userRepository.GetByUserNameAsync(user.UserName) is not null && existingUser.UserName != user.UserName.ToLower().Trim())
         {
-            errors.Add(new Error("User name already exists"));
+            errors.Add("User name already exists");
         }
         if (await _userRepository.GetByEmailAsync(user.Email) is not null && existingUser.Email != user.Email.ToLower().Trim())
         {
-            errors.Add(new Error("Email already exists"));
+            errors.Add("Email already exists");
         }
         if (!user.Email.Contains('@') && !user.Email.Contains('.'))
         {
-            errors.Add(new Error("Invalid email"));
+            errors.Add("Invalid email");
         }
         if (user.UserName.Contains('@'))
         {
-            errors.Add(new Error("User name cannot contain '@'"));
+            errors.Add("User name cannot contain '@'");
         }
         if (user.UserName.Contains('.'))
         {
-            errors.Add(new Error("User name cannot contain '.'"));
+            errors.Add("User name cannot contain '.'");
         }
         if (user.UserName.Length == 11 && user.UserName.All(char.IsDigit))
         {
-            errors.Add(new Error("User name cannot be a CPF"));
+            errors.Add("User name cannot be a CPF");
         }
         if (user.CPF.Length != 11)
         {
-            errors.Add(new Error("CPF must have 11 characters"));
+            errors.Add("CPF must have 11 characters");
         }
         if (!user.CPF.All(char.IsDigit))
         {
-            errors.Add(new Error("CPF must contain only numbers"));
+            errors.Add("CPF must contain only numbers");
         }
         if (errors.Count > 0)
         {
@@ -166,9 +177,9 @@ public class UserService(IUserRepository userRepository, IPasswordHasher passwor
         }
 
         user.Password = _passwordHasher.HashPassword(user.Password);
-        var updatedUser = new User(user.Id, user.UserName, user.DisplayName, user.Email, user.CPF, user.Role, user.Password);
+        existingUser.Update(existingUser.UserName, user.DisplayName, user.Email, user.CPF, role, user.Password);
 
-        var result = await _userRepository.UpdateAsync(updatedUser);
+        var result = await _userRepository.UpdateAsync(existingUser);
 
         if (result is null)
             return Result.Fail("Failed to update user");

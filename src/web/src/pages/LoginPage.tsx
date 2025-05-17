@@ -1,8 +1,9 @@
+import { formatCPF } from "@/models/user.model";
 import { login } from "@/services/auth.service";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 
-export const LoginPage = () => {
+const LoginPage = () => {
   const navigate = useNavigate();
   const [identifier, setIdentifier] = useState<string>("");
   const [password, setPassword] = useState<string>("");
@@ -29,7 +30,9 @@ export const LoginPage = () => {
   return (
     <div className="flex items-center justify-center min-h-screen bg-[url(/login-background.png)] bg-cover bg-no-repeat relative">
       <div className="w-full h-100 max-w-md p-8 space-y-6 bg-green-100 rounded-2xl shadow-lg shadow-black/30">
-        <h2 className="text-3xl font-bold text-center text-green-800">Autenticação</h2>
+        <h2 className="text-3xl font-bold text-center text-green-800">
+          Autenticação
+        </h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="p-2">
             <label className="text-left block text-lg font-medium text-green-700 ">
@@ -38,8 +41,20 @@ export const LoginPage = () => {
             <input
               type="text"
               value={identifier}
-              onChange={(e) => setIdentifier(e.target.value)}
-              name="nome"
+              onChange={(e) => {
+                let value = e.target.value;
+            
+                // Se for só números com até 11 dígitos, assume que é CPF e formata
+                const numericOnly = value.replace(/\D/g, "");
+                if (numericOnly.length <= 11 && /^\d+$/.test(numericOnly)) {
+                  value = formatCPF(numericOnly);
+                  setIdentifier(value.replace(/\D/g, ""));
+                  return;
+                } 
+
+                setIdentifier(value);             
+              }}
+              name="name"
               required
               className="bg-white w-full p-2 mt-1 rounded-lg focus:outline-none focus:ring-2 focus:ring-black/75 shadow-sm shadow-black/50"
               placeholder="Insira seu identificador"
@@ -76,3 +91,5 @@ export const LoginPage = () => {
     </div>
   );
 };
+
+export default LoginPage;
