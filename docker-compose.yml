@@ -14,7 +14,7 @@ services:
   product.api:
     build:
       context: .
-      dockerfile: /src/api/Products/Products.API/Dockerfile
+      dockerfile: src/api/Products/Products.API/Dockerfile
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD?error}
     depends_on:
@@ -22,7 +22,7 @@ services:
   user.api:
     build:
       context: .
-      dockerfile: /src/api/Users/Users.API/Dockerfile
+      dockerfile: src/api/Users/Users.API/Dockerfile
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD?error}
     depends_on:
