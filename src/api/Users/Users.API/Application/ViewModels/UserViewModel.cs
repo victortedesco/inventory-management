@@ -23,7 +23,7 @@ public record UserViewModel(Guid Id, string UserName, string DisplayName, string
 
         for (int i = 3; i <= 8; i++)
         {
-            chars[i] = 'X';
+            chars[i] = '*';
         }
 
         return new string(chars);

@@ -1,22 +1,28 @@
 import { SideBar } from "@/components/SideBar";
-import User, { formatCPF } from "@/models/user.model";
-import { getAllUsers } from "@/services/user.service";
-import { Menu } from "lucide-react";
+import User, { maskCPF } from "@/models/user.model";
+import { decodeToken } from "@/services/auth.service";
+import { getAllUsers, getRolesWhoCanEdit } from "@/services/user.service";
+import { AArrowDown, IdCard, Mails, Menu, Pencil, Trash } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 
 type FilterOption = "name" | "cpf" | "email";
 
-function UserPage() {
+const UserPage = () => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
   const [users, setUsers] = useState<User[]>([]);
+  const [canEdit, setCanEdit] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchData = async () => {
       const users = await getAllUsers();
       setUsers(users);
+      const decodedToken = decodeToken(localStorage.getItem("token"));
+      const canEdit = await getRolesWhoCanEdit();
+      setCanEdit(canEdit.includes(decodedToken!.role));
     };
+
     const token = localStorage.getItem("token");
     if (!token) navigate("/login");
     fetchData().catch(console.error);
@@ -32,10 +38,10 @@ function UserPage() {
     setShowFilterOptions(false);
   };
 
-  const filterIcons: Record<FilterOption, string> = {
-    name: "🔤", // Nome do usuario
-    cpf: "📕", // CPF
-    email: "📩", // Email
+  const filterIcons: Record<FilterOption, React.JSX.Element> = {
+    name: <AArrowDown size={24} />,
+    cpf: <IdCard size={24} />,
+    email: <Mails size={24} />,
   };
 
   return (
@@ -121,6 +127,7 @@ function UserPage() {
                   type="button"
                   className="border p-1.5 rounded text-base"
                   onClick={() => navigate("/create-user")}
+                  disabled={!canEdit}
                 >
                   + Usuários
                 </button>
@@ -139,10 +146,15 @@ function UserPage() {
                 <thead className="bg-color-3 text-black">
                   <tr>
                     <th className="w-10 px-4 py-3 border ">⭐</th>
-                    <th className="px-4 py-3 border ">Nome</th>
+                    <th className="px-4 py-3 border ">
+                      Nome (Nome de Usuário)
+                    </th>
                     <th className="px-4 py-3 border ">CPF</th>
                     <th className="px-4 py-3 border ">Email</th>
-                    <th className="px-4 py-3 border ">🗑️</th>
+                    <th className="px-4 py-3 border ">Cargo</th>
+                    <th className={canEdit ? `px-4 py-3 border` : `hidden`}>
+                      Ações
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -159,11 +171,17 @@ function UserPage() {
                       <td className="border  px-4 py-3">
                         {user.displayName} <span>({user.userName})</span>
                       </td>
-                      <td className="border  px-4 py-3">
-                        {formatCPF(user.cpf)}
-                      </td>
+                      <td className="border  px-4 py-3">{maskCPF(user.cpf)}</td>
                       <td className="border  px-4 py-3">{user.email}</td>
-                      <td className="border  px-4 py-3">🗑️</td>
+                      <td className="border  px-4 py-3">{user.role}</td>
+                      <td className={canEdit ? `border  px-4 py-3` : `hidden`}>
+                        <button>
+                          <Pencil size={32} />
+                        </button>
+                        <button>
+                          <Trash size={32} />
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

@@ -3,7 +3,7 @@ import { Menu } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 
-function CreateCategoryPage() {
+const CreateCategoryPage = () => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 

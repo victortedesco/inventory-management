@@ -1,31 +1,53 @@
 import { SideBar } from "@/components/SideBar";
 import { Menu } from "lucide-react";
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
+import { toast } from "sonner";
 
-function CreateProductPage() {
+const CreateProductPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const productId = searchParams.get("id");
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [product, setProduct] = useState(null);
 
   useEffect(() => {
+    const fetchData = async () => {
+      if (productId) {
+        const product = null; //await getProductById(productId);
+        if (!product) {
+          toast.error("Produto não encontrado.");
+          navigate("/products");
+          return;
+        }
+        // Fetch product data by ID
+        setProduct(product);
+      }
+    };
     const token = localStorage.getItem("token");
-    if (!token) navigate("/login");
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+    fetchData();
   }, []);
 
   const [formData, setFormData] = useState({
-    nome: "",
-    quantidade: "",
-    preco: "",
-    categoria: "",
-    caixa: "",
-    codigoBarras: "",
-    imagem: null as File | null,
+    name: "",
+    quantity: "",
+    price: "",
+    category: "",
+    box: "",
+    barCode: "",
+    image: null as File | null,
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, files } = e.target;
     if (name === "imagem" && files) {
-      setFormData({ ...formData, imagem: files[0] });
+      setFormData({ ...formData, image: files[0] });
     } else {
       setFormData({ ...formData, [name]: value.replace(",", ".") });
     }
@@ -62,14 +84,14 @@ function CreateProductPage() {
         <div className="flex justify-center items-start">
           <div className="bg-white p-8 rounded-xl shadow-lg w-80">
             <p className="text-center text-xl font-bold mb-4">
-              Adicionar Produto
+              {productId ? "Atualizar" : "Adicionar"} Produto
             </p>
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
               <input
                 type="text"
                 name="nome"
                 placeholder="Nome"
-                value={formData.nome}
+                value={formData.name}
                 onChange={handleChange}
                 className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
                 required
@@ -80,7 +102,7 @@ function CreateProductPage() {
                 name="quantidade"
                 step="1"
                 placeholder="Quantidade"
-                value={formData.quantidade}
+                value={formData.quantity}
                 onChange={handleChange}
                 className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
                 required
@@ -93,7 +115,7 @@ function CreateProductPage() {
                 max="999999"
                 name="preco"
                 placeholder="Preço por unidade (R$ 0,00)"
-                value={formData.preco}
+                value={formData.price}
                 onChange={handleChange}
                 className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
                 required
@@ -104,7 +126,7 @@ function CreateProductPage() {
                 type="text"
                 name="categoria"
                 placeholder="Categoria"
-                value={formData.categoria}
+                value={formData.category}
                 onChange={handleChange}
                 className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
                 required
@@ -115,7 +137,7 @@ function CreateProductPage() {
                 type="text"
                 name="caixa"
                 placeholder="Caixa"
-                value={formData.caixa}
+                value={formData.box}
                 onChange={handleChange}
                 className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
               />
@@ -126,7 +148,7 @@ function CreateProductPage() {
                 pattern="\d{13}"
                 maxLength={13}
                 placeholder="Código de Barras"
-                value={formData.codigoBarras}
+                value={formData.barCode}
                 onChange={handleChange}
                 className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
                 required
@@ -143,9 +165,9 @@ function CreateProductPage() {
                     className="hidden"
                   />
                 </label>
-                {formData.imagem && (
+                {formData.image && (
                   <span className="text-xs text-gray-600 mt-2">
-                    {formData.imagem.name}
+                    {formData.image.name}
                   </span>
                 )}
               </div>
@@ -162,6 +184,6 @@ function CreateProductPage() {
       </div>
     </div>
   );
-}
+};
 
 export default CreateProductPage;

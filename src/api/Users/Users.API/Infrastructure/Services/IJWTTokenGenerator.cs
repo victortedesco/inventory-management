@@ -22,7 +22,8 @@ public class JWTTokenGenerator(IConfiguration configuration) : IJWTTokenGenerato
         {
             new("sub", user.Id.ToString()),
             new("jti", Guid.NewGuid().ToString()),
-            new("name", user.UserName)
+            new("name", user.UserName),
+            new("role", user.Role)
         };
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:SecretKey"]));
@@ -33,7 +34,8 @@ public class JWTTokenGenerator(IConfiguration configuration) : IJWTTokenGenerato
             audience: _configuration["Jwt:Audience"],
             claims: claims,
             expires: DateTime.UtcNow.AddDays(3),
-            signingCredentials: creds);
+            signingCredentials: creds
+        );
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }

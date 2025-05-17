@@ -5,7 +5,7 @@ using Microsoft.OpenApi.Models;
 using Polly;
 using System.Text;
 using Users.API;
-using Users.API.Domain;
+using Users.API.Infrastructure.Data;
 using Users.API.Infrastructure.Repositories;
 using Users.API.Infrastructure.Services;
 
@@ -84,6 +84,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 });
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IJWTTokenGenerator, JWTTokenGenerator>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
@@ -125,6 +127,7 @@ static async Task ExecuteMigrationsPeriodically(WebApplication app)
         if (pendingMigrations.Any())
         {
             await dbContext.Database.MigrateAsync();
+            await dbContext.SeedDataAsync();
         }
     });
 }
