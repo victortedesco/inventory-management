@@ -7,13 +7,18 @@ using Products.API;
 using Products.Infrastructure;
 using Products.Infrastructure.Data;
 using System.Text;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers().ConfigureApiBehaviorOptions(options =>
 {
     options.SuppressMapClientErrors = true;
+}).AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(cfg =>
 {
@@ -73,7 +78,7 @@ if (builder.Environment.IsProduction())
 {
     connectionString = connectionString.Replace("localhost", "postgres");
 }
-
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddInfrastructure(connectionString);
 builder.Services.AddCors(options =>
 {

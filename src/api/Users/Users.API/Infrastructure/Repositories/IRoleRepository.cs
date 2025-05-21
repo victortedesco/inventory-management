@@ -51,9 +51,11 @@ public class RoleRepository(AppDbContext context) : IRoleRepository
     public async Task<bool> DeleteAsync(int id)
     {
         var role = await GetByIdAsync(id);
-        if (role is null) return false;
+
+        if (role is null)
+            return false;
+
         _roles.Remove(role);
-        await _context.SaveChangesAsync();
-        return true;
+        return await _context.SaveChangesAsync() > 0;
     }
 }

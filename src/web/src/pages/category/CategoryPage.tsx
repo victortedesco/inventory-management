@@ -12,7 +12,7 @@ const CategoryPage = () => {
     if (!token) navigate("/login");
   }, []);
 
-  const products = [
+  const categories = [
     { name: "Blusa", category: "Roupa", stock: 30, price: 50.0, icon: "👕" },
     { name: "Doritos", category: "Comida", stock: 26, price: 8.0, icon: "🍿" },
     {
@@ -25,11 +25,11 @@ const CategoryPage = () => {
     { name: "Camisa", category: "Roupa", stock: 42, price: 35.0, icon: "👔" },
   ];
 
-  const totalItems = products.length;
-  const totalStock = products.reduce((sum, product) => sum + product.stock, 0);
+  const totalItems = categories.length;
+  const totalStock = categories.reduce((sum, product) => sum + product.stock, 0);
 
   // Agrupamento por categoria
-  const categorySummary: Record<string, number> = products.reduce(
+  const categorySummary: Record<string, number> = categories.reduce(
     (acc, product) => {
       acc[product.category] = (acc[product.category] || 0) + product.stock;
       return acc;
@@ -114,7 +114,7 @@ const CategoryPage = () => {
             <form className="overflow-x-auto">
               <table className="min-w-full bg-white border text-lg md:text-base">
                 <tbody>
-                  {products.map((product, index) => (
+                  {categories.map((product, index) => (
                     <tr
                       key={index}
                       className={`text-center ${

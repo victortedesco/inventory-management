@@ -26,7 +26,7 @@ const UserPage = () => {
     const token = localStorage.getItem("token");
     if (!token) navigate("/login");
     fetchData().catch(console.error);
-  }, []);
+  }, [navigate]);
 
   const totalUsers = users.length;
 
@@ -126,7 +126,7 @@ const UserPage = () => {
                 <button
                   type="button"
                   className="border p-1.5 rounded text-base"
-                  onClick={() => navigate("/create-user")}
+                  onClick={() => navigate("/user")}
                   disabled={!canEdit}
                 >
                   + Usuários
@@ -175,7 +175,11 @@ const UserPage = () => {
                       <td className="border  px-4 py-3">{user.email}</td>
                       <td className="border  px-4 py-3">{user.role}</td>
                       <td className={canEdit ? `border  px-4 py-3` : `hidden`}>
-                        <button>
+                        <button
+                          onClick={() =>
+                            navigate(`/user/${user.id}`)
+                          }
+                        >
                           <Pencil size={32} />
                         </button>
                         <button>
@@ -192,6 +196,6 @@ const UserPage = () => {
       </div>
     </div>
   );
-}
+};
 
 export default UserPage;

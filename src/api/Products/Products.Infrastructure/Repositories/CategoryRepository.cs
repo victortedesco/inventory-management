@@ -15,18 +15,19 @@ public class CategoryRepository(AppDbContext dbContext) : ICategoryRepository
             .OrderByDescending(c => c.CreatedAt)
             .Skip(skip)
             .Take(take)
+            .Include(c => c.Products)
             .Where(c => string.IsNullOrEmpty(name) || c.Name.ToLower().Contains(name.ToLower()))
             .ToListAsync();
     }
 
     public async Task<Category> GetByIdAsync(int id)
     {
-        return await _categories.FindAsync(id);
+        return await _categories.Include(c => c.Products).FirstOrDefaultAsync(c => c.Id == id);
     }
 
     public async Task<Category> GetByNameAsync(string name)
     {
-        return await _categories.FirstOrDefaultAsync(c => c.Name.ToLower() == name.ToLower());
+        return await _categories.Include(c => c.Products).FirstOrDefaultAsync(c => c.Name.ToLower() == name.ToLower());
     }
 
     public async Task<Category> CreateAsync(Category entity)
@@ -40,6 +41,7 @@ public class CategoryRepository(AppDbContext dbContext) : ICategoryRepository
     {
         var result = _categories.Update(entity);
         await dbContext.SaveChangesAsync();
+        dbContext.Entry(result.Entity).Collection(p => p.Products).Load();
         return result.Entity;
     }
 

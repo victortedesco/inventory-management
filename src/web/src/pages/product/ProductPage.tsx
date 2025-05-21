@@ -1,10 +1,13 @@
 import { SideBar } from "@/components/SideBar";
+import Product from "@/models/product.model";
 import {
   AArrowDown,
   Banknote,
   GalleryHorizontalEnd,
   Hash,
   Menu,
+  Pencil,
+  Trash,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
@@ -14,27 +17,16 @@ type FilterOption = "name" | "category" | "quantity" | "price";
 const ProductPage = () => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [canEdit, setCanEdit] = useState<boolean>(true);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) navigate("/login");
   }, []);
-
-  const products = [
-    { name: "Blusa", category: "Roupa", stock: 30, price: 50.0, icon: "👕" },
-    { name: "Doritos", category: "Comida", stock: 26, price: 8.0, icon: "🍿" },
-    {
-      name: "Bolsa",
-      category: "Acessórios",
-      stock: 10,
-      price: 140.0,
-      icon: "👜",
-    },
-    { name: "Camisa", category: "Roupa", stock: 42, price: 35.0, icon: "👔" },
-  ];
   
   const totalProducts = products.length;
-  const totalStock = products.reduce((sum, product) => sum + product.stock, 0);
+  const totalStock = products.reduce((sum, product) => sum + product.quantity, 0);
 
   const [showFilterOptions, setShowFilterOptions] = useState<boolean>(false);
   const [selectedFilter, setSelectedFilter] = useState<FilterOption>("name");
@@ -180,14 +172,25 @@ const ProductPage = () => {
                         <input type="checkbox" className="w-4 h-4" />
                       </td>
                       <td className="border  px-4 py-3">
-                        {product.name} <span>{product.icon}</span>
+                        {product.name}
                       </td>
-                      <td className="border  px-4 py-3">{product.category}</td>
-                      <td className="border  px-4 py-3">{product.stock}</td>
+                      <td className="border  px-4 py-3">{product.category.name}</td>
+                      <td className="border  px-4 py-3">{product.quantity}</td>
                       <td className="border  px-4 py-3">
-                        R$ {product.price.toFixed(2)}
+                        R$ {product.unitPrice.toFixed(2)}
                       </td>
-                      <td className="border  px-4 py-3">🗑️</td>
+                        <td className={canEdit ? `border  px-4 py-3` : `hidden`}>
+                        <button
+                          onClick={() =>
+                            navigate(`/product/${product.id}`)
+                          }
+                        >
+                          <Pencil size={32} />
+                        </button>
+                        <button>
+                          <Trash size={32} />
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

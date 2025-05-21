@@ -8,23 +8,52 @@ import {
 } from "@/services/user.service";
 import { Menu } from "lucide-react";
 import { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 
 const CreateUserPage = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const searchParams = new URLSearchParams(location.search);
-  const userId = searchParams.get("id");
+  const { id } = useParams();
 
-  const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [roles, setRoles] = useState<string[]>([]);
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const [formData, setFormData] = useState({
+    id: "",
+    userName: "",
+    displayName: "",
+    cpf: "",
+    email: "",
+    password: "",
+    role: "",
+  });
+
+  useEffect(() => {
+    setUserId(id || null);
+  }, [id]);
 
   useEffect(() => {
     const fetchData = async () => {
-      const roles = await getRoles();
-      setRoles(roles);
+      const token = localStorage.getItem("token");
+      if (!token) {
+        navigate("/login");
+        return;
+      }
+
+      const decodedToken = decodeToken(token);
+      const canEditRoles = await getRolesWhoCanEdit();
+
+      if (!decodedToken || !canEditRoles.includes(decodedToken.role)) {
+        toast.error("Você não tem permissão para acessar esta página.");
+        navigate("/users");
+        return;
+      }
+
+      const allRoles = await getRoles();
+      setRoles(allRoles);
 
       if (userId) {
         const user = await getUserById(userId);
@@ -33,44 +62,27 @@ const CreateUserPage = () => {
           navigate("/users");
           return;
         }
+
         setUser(user);
         setFormData({
           id: user.id,
           userName: user.userName,
           displayName: user.displayName,
-          cpf: formatCPF(user.cpf),
+          cpf: user.cpf,
           email: user.email,
           password: "",
           role: user.role,
         });
       }
 
-      var decodedToken = decodeToken(localStorage.getItem("token"));
-
-      const canEdit = await getRolesWhoCanEdit();
-      if (decodedToken && !canEdit.includes(decodedToken.role)) {
-        toast.error("Você não tem permissão para acessar esta página.");
-        navigate("/users");
-      }
+      setLoading(false);
     };
 
-    const token = localStorage.getItem("token");
-    if (!token) {
-      navigate("/login");
-      return;
+    // Só executa após `userId` estar definido (inclusive se for null)
+    if (userId !== undefined) {
+      fetchData().catch(console.error);
     }
-    fetchData().catch(console.error);
-  }, []);
-
-  const [formData, setFormData] = useState({
-    id: userId,
-    userName: "",
-    displayName: "",
-    cpf: "",
-    email: "",
-    password: "",
-    role: "",
-  });
+  }, [userId]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -86,11 +98,19 @@ const CreateUserPage = () => {
   };
 
   const handleSubmit = (e: React.FormEvent) => {
-    toast.info("Cadastrando usuário...");
     e.preventDefault();
+    toast.info("Cadastrando usuário...");
     console.log(formData);
     toast.success("Usuário cadastrado.");
   };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p className="text-xl">Carregando...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen">
@@ -102,9 +122,7 @@ const CreateUserPage = () => {
         <SideBar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
       </div>
 
-      {/* Conteúdo principal */}
       <div className="flex-1 bg-gray-100 p-4 sm:p-6 relative">
-        {/* Botão menu hamburguer no mobile */}
         <button
           className={`md:hidden absolute top-4 left-4 z-50 ${
             sidebarOpen ? "hidden" : ""
@@ -113,26 +131,23 @@ const CreateUserPage = () => {
         >
           <Menu size={32} />
         </button>
-        {/* Formulário de Cadastro de Produto */}
+
         <div className="flex justify-center items-start">
           <div className="bg-white p-8 rounded-xl shadow-lg w-80">
             <p className="text-center text-xl font-bold mb-4">
               {userId ? "Atualizar" : "Adicionar"} Usuário
             </p>
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-              <input
-                type="text"
-                name="id"
-                placeholder={userId || "ID"}
-                value={formData.id || ""}
-                onChange={handleChange}
-                className={
-                  userId
-                    ? `border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400`
-                    : `hidden`
-                }
-                disabled
-              />
+              {userId && (
+                <input
+                  type="text"
+                  name="id"
+                  placeholder="ID"
+                  value={formData.id}
+                  disabled
+                  className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                />
+              )}
 
               <input
                 type="text"
@@ -184,7 +199,6 @@ const CreateUserPage = () => {
                 required
               />
 
-              {/* Dropdown menu */}
               <select
                 name="role"
                 value={formData.role}

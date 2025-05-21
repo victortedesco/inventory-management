@@ -29,30 +29,22 @@ public class UserRepository(AppDbContext context) : IUserRepository
 
     public async Task<User> GetByIdAsync(Guid id)
     {
-        var user = await _users.FindAsync(id);
-        await _context.Entry(user).Reference(u => u.Role).LoadAsync();
-        return user;
+        return await _users.Include(u => u.Role).FirstOrDefaultAsync(u => u.Id == id);
     }
 
     public async Task<User> GetByUserNameAsync(string userName)
     {
-        var user = await _users.FirstOrDefaultAsync(u => u.UserName == userName);
-        await _context.Entry(user).Reference(u => u.Role).LoadAsync();
-        return user;
+        return await _users.Include(u => u.Role).FirstOrDefaultAsync(u => u.UserName == userName);
     }
 
     public async Task<User> GetByCPFAsync(string cpf)
     {
-        var user = await _users.FirstOrDefaultAsync(u => u.CPF == cpf);
-        await _context.Entry(user).Reference(u => u.Role).LoadAsync();
-        return user;
+        return await _users.Include(u => u.Role).FirstOrDefaultAsync(u => u.CPF == cpf);
     }
 
     public async Task<User> GetByEmailAsync(string email)
     {
-        var user = await _users.FirstOrDefaultAsync(u => u.Email == email);
-        await _context.Entry(user).Reference(u => u.Role).LoadAsync();
-        return user;
+        return await _users.Include(u => u.Role).FirstOrDefaultAsync(u => u.Email == email);
     }
 
     public async Task<IEnumerable<User>> GetByDisplayNameAsync(string displayName)

@@ -27,7 +27,9 @@ public static class DTOExtensions
         return new CategoryDTO
         {
             Id = category.Id,
-            Name = category.Name
+            Name = category.Name,
+            ProductCount = category.Products.Count,
+            Value = category.Products.Sum(p => p.UnitPrice * p.Quantity),
         };
     }
 
@@ -56,5 +58,22 @@ public static class DTOExtensions
     public static IEnumerable<BoxDTO> ToDTO(this IEnumerable<Box> boxes)
     {
         return boxes.Select(ToDTO);
+    }
+
+    public static AuditLogDTO ToDTO(this AuditLog auditLog)
+    {
+        return new AuditLogDTO
+        {
+            Id = auditLog.Id,
+            EntityId = auditLog.EntityId,
+            EntityType = auditLog.EntityType,
+            ActionType = auditLog.ActionType,
+            Timestamp = auditLog.Timestamp,
+        };
+    }
+
+    public static IEnumerable<AuditLogDTO> ToDTO(this IEnumerable<AuditLog> auditLogs)
+    {
+        return auditLogs.Select(ToDTO);
     }
 }
