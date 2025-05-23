@@ -8,3 +8,7 @@ export default interface Product {
   quantity: number;
   category: Category;
 }
+
+export const formatMoney = (value: number) => {
+  return "R$ " + value.toFixed(2).toString().replace(".", ",");
+};

@@ -1,4 +1,6 @@
 import { SideBar } from "@/components/SideBar";
+import Category from "@/models/category.model";
+import { getAllCategories } from "@/services/category.service";
 import { Menu } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router";
@@ -12,6 +14,7 @@ const CreateProductPage = () => {
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [product, setProduct] = useState(null);
+  const [categories, setCategories] = useState<Category[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -24,6 +27,8 @@ const CreateProductPage = () => {
         }
         // Fetch product data by ID
         setProduct(product);
+        const allCategories = await getAllCategories();
+        setCategories(allCategories);
       }
     };
     const token = localStorage.getItem("token");
@@ -121,16 +126,24 @@ const CreateProductPage = () => {
                 required
               />
 
+
               {/* Dropdown menu */}
-              <input
-                type="text"
-                name="categoria"
-                placeholder="Categoria"
+              <select
+                name="Categoria"
                 value={formData.category}
                 onChange={handleChange}
                 className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
                 required
-              />
+              >
+                <option value="" disabled>
+                  Selecione a Categoria
+                </option>
+                {categories.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
+              </select>
 
               {/* Dropdown menu */}
               <input

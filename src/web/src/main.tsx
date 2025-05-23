@@ -22,9 +22,11 @@ createRoot(document.getElementById("root")!).render(
         <Route path="/products" element={<ProductPage />} />
         <Route path="/product" element={<CreateProductPage />} />
         <Route path="/users" element={<UserPage />} />
+        <Route path="/user" element={<CreateUserPage />} />
         <Route path="/user/:id" element={<CreateUserPage />} />
         <Route path="/categories" element={<CategoryPage />} />
         <Route path="/category" element={<CreateCategoryPage />} />
+        <Route path="/category/:id" element={<CreateCategoryPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>

@@ -1,41 +1,50 @@
 import { SideBar } from "@/components/SideBar";
-import { Menu } from "lucide-react";
+import Category from "@/models/category.model";
+import { formatMoney } from "@/models/product.model";
+import { decodeToken } from "@/services/auth.service";
+import { getAllCategories } from "@/services/category.service";
+import { getAllUsers, getRolesWhoCanEdit } from "@/services/user.service";
+import { AArrowDown, Mails, Menu, Pencil, ShoppingBag, Trash, BadgeDollarSign} from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 
+type FilterOption = "name" | "productCount" | "value" ;
+
 const CategoryPage = () => {
   const navigate = useNavigate();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [canEdit, setCanEdit] = useState<boolean>(false);
 
   useEffect(() => {
+    const fetchData = async () => {
+      const categories = await getAllCategories();
+      setCategories(categories);
+      const decodedToken = decodeToken(localStorage.getItem("token"));
+      const canEdit = await getRolesWhoCanEdit();
+      setCanEdit(canEdit.includes(decodedToken!.role));
+    };
+
     const token = localStorage.getItem("token");
     if (!token) navigate("/login");
-  }, []);
+    fetchData().catch(console.error);
+  }, [navigate]);
 
-  const categories = [
-    { name: "Blusa", category: "Roupa", stock: 30, price: 50.0, icon: "👕" },
-    { name: "Doritos", category: "Comida", stock: 26, price: 8.0, icon: "🍿" },
-    {
-      name: "Bolsa",
-      category: "Acessórios",
-      stock: 10,
-      price: 140.0,
-      icon: "👜",
-    },
-    { name: "Camisa", category: "Roupa", stock: 42, price: 35.0, icon: "👔" },
-  ];
+  const totalCategories = categories.length;
 
-  const totalItems = categories.length;
-  const totalStock = categories.reduce((sum, product) => sum + product.stock, 0);
+  const [showFilterOptions, setShowFilterOptions] = useState<boolean>(false);
+  const [selectedFilter, setSelectedFilter] = useState<FilterOption>("name");
 
-  // Agrupamento por categoria
-  const categorySummary: Record<string, number> = categories.reduce(
-    (acc, product) => {
-      acc[product.category] = (acc[product.category] || 0) + product.stock;
-      return acc;
-    },
-    {} as Record<string, number>
-  );
+  const handleFilterSelect = (filter: FilterOption) => {
+    setSelectedFilter(filter);
+    setShowFilterOptions(false);
+  };
+
+  const filterIcons: Record<FilterOption, React.JSX.Element> = {
+    name: <AArrowDown size={24} />,
+    productCount: <ShoppingBag size={24} />,
+    value: <BadgeDollarSign size={24} />,
+  };
 
   return (
     <div className="flex min-h-screen">
@@ -59,31 +68,16 @@ const CategoryPage = () => {
           <Menu size={32} />
         </button>
 
+        {/* Categorias fofas */}
+
         <div className="flex flex-col md:flex-row">
           <main className="w-full p-4">
             <div className="flex flex-col md:flex-row justify-between items-center mb-4">
               <div className="text-center md:text-left mb-2 md:mb-0">
-                <h2 className="text-2xl md:text-lg font-semibold">
-                  Categorias
-                </h2>
+                <h2 className="text-2xl md:text-lg font-semibold">Categorias</h2>
                 <p className="text-base md:text-sm">
-                  {totalItems} Itens cadastrados
+                  {totalCategories} categorias cadastradas
                 </p>
-                <p className="text-base md:text-sm">
-                  Quantidade disponível: {totalStock}
-                </p>
-                <div className="text-sm mt-2 text-left">
-                  <p className="font-semibold">Categorias no estoque:</p>
-                  <ul className="list-disc list-inside">
-                    {Object.entries(categorySummary).map(
-                      ([category, count]) => (
-                        <li key={category}>
-                          {category}: {count} item{count > 1 ? "s" : ""}
-                        </li>
-                      )
-                    )}
-                  </ul>
-                </div>
               </div>
 
               {/* Formulário superior */}
@@ -93,11 +87,49 @@ const CategoryPage = () => {
                   placeholder="Pesquisar por..."
                   className="border p-1.5 rounded text-base w-full sm:w-40"
                 />
+                <div className="relative inline-block text-left">
+                  <button
+                    type="button"
+                    className="border p-1.5 rounded text-base"
+                    onClick={() => setShowFilterOptions(!showFilterOptions)}
+                  >
+                    {filterIcons[selectedFilter]}
+                  </button>
+
+                  {showFilterOptions && (
+                    <div className="absolute top-full mt-1 w-48 bg-white border border-gray-300 rounded shadow z-10">
+                      <p className="px-3 py-2 font-semibold border-b">
+                        Pesquisar por:
+                      </p>
+                      <ul className="flex flex-col">
+                        <li
+                          className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                          onClick={() => handleFilterSelect("name")}
+                        >
+                          Nome
+                        </li>
+                        <li
+                          className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                          onClick={() => handleFilterSelect("productCount")}
+                        >
+                          Quantidade de produtos
+                        </li>
+                        <li
+                          className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                          onClick={() => handleFilterSelect("value")}
+                        >
+                          Valor
+                        </li>
+                      </ul>
+                    </div>
+                  )}
+                </div>
 
                 <button
                   type="button"
                   className="border p-1.5 rounded text-base"
                   onClick={() => navigate("/category")}
+                  disabled={!canEdit}
                 >
                   + Categoria
                 </button>
@@ -110,11 +142,24 @@ const CategoryPage = () => {
               </form>
             </div>
 
-            {/* Tabela de produtos */}
+            {/* Formulário inferior (tabela) */}
             <form className="overflow-x-auto">
               <table className="min-w-full bg-white border text-lg md:text-base">
+                <thead className="bg-color-3 text-black">
+                  <tr>
+                    <th className="w-10 px-4 py-3 border ">⭐</th>
+                    <th className="px-4 py-3 border ">
+                      Nome
+                    </th>
+                    <th className="px-4 py-3 border ">Quantidade de Produtos</th>
+                    <th className="px-4 py-3 border ">Valor Total</th>
+                    <th className={canEdit ? `px-4 py-3 border` : `hidden`}>
+                      Ações
+                    </th>
+                  </tr>
+                </thead>
                 <tbody>
-                  {categories.map((product, index) => (
+                  {categories.map((category, index) => (
                     <tr
                       key={index}
                       className={`text-center ${
@@ -124,15 +169,23 @@ const CategoryPage = () => {
                       <td className="border px-4 py-3">
                         <input type="checkbox" className="w-4 h-4" />
                       </td>
-                      <td className="border px-4 py-3">
-                        {product.name} <span>{product.icon}</span>
+                      <td className="border  px-4 py-3">
+                        {category.name} 
                       </td>
-                      <td className="border px-4 py-3">{product.category}</td>
-                      <td className="border px-4 py-3">{product.stock}</td>
-                      <td className="border px-4 py-3">
-                        R$ {product.price.toFixed(2)}
+                      <td className="border  px-4 py-3">{category.productCount}</td>
+                      <td className="border  px-4 py-3">{formatMoney(category.value)}</td>
+                      <td className={canEdit ? `border  px-4 py-3` : `hidden`}>
+                        <button
+                          onClick={() =>
+                            navigate(`/category/${category.id}`)
+                          }
+                        >
+                          <Pencil size={32} />
+                        </button>
+                        <button>
+                          <Trash size={32} />
+                        </button>
                       </td>
-                      <td className="border px-4 py-3">🗑️</td>
                     </tr>
                   ))}
                 </tbody>
@@ -143,6 +196,6 @@ const CategoryPage = () => {
       </div>
     </div>
   );
-}
+};
 
 export default CategoryPage;
