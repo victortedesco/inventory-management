@@ -9,6 +9,12 @@ public class AuditLogService(IAuditLogRepository auditLogRepository) : IAuditLog
 {
     private readonly IAuditLogRepository _auditLogRepository = auditLogRepository;
 
+    public async Task<IEnumerable<AuditLogDTO>> GetAllAsync(int skip, int take)
+    {
+        var auditLogs = await _auditLogRepository.GetAllAsync(skip, take);
+        return auditLogs.ToDTO();
+    }
+
     public async Task<IEnumerable<AuditLogDTO>> GetByActionTypeAsync(int skip, int take, AuditActionType actionType)
     {
         var auditLogs = await _auditLogRepository.GetByActionTypeAsync(skip, take, actionType);

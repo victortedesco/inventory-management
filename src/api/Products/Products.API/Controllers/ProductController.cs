@@ -73,6 +73,8 @@ public class ProductController(IProductService productService) : ControllerBase
         {
             Name = product.Name,
             Image = product.Image,
+            Barcode = product.Barcode,
+            Category = new CategoryDTO { Id = int.Parse(product.CategoryId) },
             UnitPrice = product.UnitPrice,
             Quantity = product.Quantity,
         });
@@ -87,7 +89,7 @@ public class ProductController(IProductService productService) : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(IEnumerable<string>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProductViewModel), StatusCodes.Status200OK)]
-    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateProductRequest category)
+    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateProductRequest product)
     {
         var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value;
 
@@ -97,10 +99,12 @@ public class ProductController(IProductService productService) : ControllerBase
         var result = await _productService.UpdateAsync(Guid.Parse(userId), new ProductDTO
         {
             Id = id,
-            Name = category.Name,
-            Image = category.Image,
-            UnitPrice = category.UnitPrice,
-            Quantity = category.Quantity,
+            Name = product.Name,
+            Image = product.Image,
+            Barcode = product.Barcode,
+            Category = new CategoryDTO { Id = int.Parse(product.CategoryId) },
+            UnitPrice = product.UnitPrice,
+            Quantity = product.Quantity,
         });
 
         if (result.IsFailed)

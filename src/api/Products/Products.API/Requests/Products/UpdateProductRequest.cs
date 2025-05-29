@@ -2,9 +2,11 @@
 
 public class UpdateProductRequest
 {
-    public Guid Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string Image { get; set; } = string.Empty;
+    public string Id { get; set; }
+    public string Name { get; set; }
+    public string Image { get; set; }
+    public string Barcode { get; set; }
+    public string CategoryId { get; set; }
     public decimal UnitPrice { get; set; }
     public uint Quantity { get; set; }
 }

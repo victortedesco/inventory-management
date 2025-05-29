@@ -19,6 +19,13 @@ internal class ProductEntityConfiguration : IEntityTypeConfiguration<Product>
         builder.HasIndex(b => b.Name)
             .IsUnique();
 
+        builder.Property(b => b.Barcode)
+            .IsRequired()
+            .HasMaxLength(13);
+
+        builder.HasIndex(b => b.Barcode)
+            .IsUnique();
+
         builder.Property(b => b.CreatedBy)
             .IsRequired();
 

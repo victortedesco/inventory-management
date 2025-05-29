@@ -1,5 +1,9 @@
 import { SideBar } from "@/components/SideBar";
-import Product from "@/models/product.model";
+import Product, { formatMoney } from "@/models/product.model";
+import { decodeToken } from "@/services/auth.service";
+import { getAllCategories } from "@/services/category.service";
+import { getAllProducts } from "@/services/product.service";
+import { getRolesWhoCanEdit } from "@/services/user.service";
 import {
   AArrowDown,
   Banknote,
@@ -21,12 +25,23 @@ const ProductPage = () => {
   const [canEdit, setCanEdit] = useState<boolean>(true);
 
   useEffect(() => {
+    const fetchData = async () => {
+      const decodedToken = decodeToken(localStorage.getItem("token"));
+      const canEdit = await getRolesWhoCanEdit();
+      setCanEdit(canEdit.includes(decodedToken!.role));
+      const products = await getAllProducts();
+      setProducts(products);
+    };
     const token = localStorage.getItem("token");
     if (!token) navigate("/login");
-  }, []);
-  
+    fetchData().catch(console.error);
+  }, [navigate]);
+
   const totalProducts = products.length;
-  const totalStock = products.reduce((sum, product) => sum + product.quantity, 0);
+  const totalStock = products.reduce(
+    (sum, product) => sum + product.quantity,
+    0
+  );
 
   const [showFilterOptions, setShowFilterOptions] = useState<boolean>(false);
   const [selectedFilter, setSelectedFilter] = useState<FilterOption>("name");
@@ -76,7 +91,7 @@ const ProductPage = () => {
                   {totalProducts} produtos cadastrados
                 </p>
                 <p className="text-base md:text-sm">
-                  Quantidade disponível: {totalStock}
+                  Estoque total: {totalStock}
                 </p>
               </div>
 
@@ -152,12 +167,12 @@ const ProductPage = () => {
               <table className="min-w-full bg-white border text-lg md:text-base">
                 <thead className="bg-color-3 text-black">
                   <tr>
-                    <th className="w-10 px-4 py-3 border ">⭐</th>
+                    <th className="px-4 py-3 border ">Imagem</th>
                     <th className="px-4 py-3 border ">Itens</th>
                     <th className="px-4 py-3 border ">Categoria</th>
                     <th className="px-4 py-3 border ">Estoque</th>
                     <th className="px-4 py-3 border ">Preço</th>
-                    <th className="px-4 py-3 border ">🗑️</th>
+                    <th className="px-4 py-3 border ">Ações</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -168,22 +183,32 @@ const ProductPage = () => {
                         index % 2 === 0 ? "bg-color-1" : "bg-color-2"
                       }`}
                     >
-                      <td className="border px-4 py-3">
-                        <input type="checkbox" className="w-4 h-4" />
+                      <td className="flex justify-center border px-4 py-3">
+                        {product.image ? (
+                          <img
+                            src={product.image}
+                            alt={product.name}
+                            className="h-16 object-cover rounded"
+                          />
+                        ) : (
+                          <img
+                            src="no-image.png"
+                            alt="Imagem não disponível"
+                            className="h-16 object-cover rounded"
+                          />
+                        )}
                       </td>
+                      <td className="border  px-4 py-3">{product.name}</td>
                       <td className="border  px-4 py-3">
-                        {product.name}
+                        {product.category ? product.category.name : "Sem categoria"}
                       </td>
-                      <td className="border  px-4 py-3">{product.category.name}</td>
                       <td className="border  px-4 py-3">{product.quantity}</td>
                       <td className="border  px-4 py-3">
-                        R$ {product.unitPrice.toFixed(2)}
+                        { formatMoney(product.unitPrice) }
                       </td>
-                        <td className={canEdit ? `border  px-4 py-3` : `hidden`}>
+                      <td className={canEdit ? `border  px-4 py-3` : `hidden`}>
                         <button
-                          onClick={() =>
-                            navigate(`/product/${product.id}`)
-                          }
+                          onClick={() => navigate(`/product/${product.id}`)}
                         >
                           <Pencil size={32} />
                         </button>

@@ -12,6 +12,7 @@ public static class DTOExtensions
             Name = product.Name,
             Image = product.Image,
             UnitPrice = product.UnitPrice,
+            Barcode = product.Barcode,
             Quantity = product.Quantity,
             Category = product.Category?.ToDTO()
         };
@@ -67,7 +68,12 @@ public static class DTOExtensions
             Id = auditLog.Id,
             EntityId = auditLog.EntityId,
             EntityType = auditLog.EntityType,
+            EntityName = auditLog.EntityName,
             ActionType = auditLog.ActionType,
+            Property = auditLog.Property,
+            OldValue = auditLog.OldValue,
+            NewValue = auditLog.NewValue,
+            UserId = auditLog.UserId,
             Timestamp = auditLog.Timestamp,
         };
     }

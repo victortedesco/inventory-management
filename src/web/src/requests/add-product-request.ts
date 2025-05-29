@@ -1,6 +1,8 @@
 export interface CreateProductRequest {
   name: string;
   image: string;
-  uniPrice: number
+  barcode: string
+  categoryId: string
+  unitPrice: number
   quantity: number
 }

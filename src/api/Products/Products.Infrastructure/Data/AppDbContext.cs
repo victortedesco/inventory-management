@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Products.Domain.Models;
 using System.Reflection;
+using System.Security.Claims;
 
 namespace Products.Infrastructure.Data;
 
@@ -16,7 +17,7 @@ public class AppDbContext : DbContext
 
     public AppDbContext(DbContextOptions<AppDbContext> options, IHttpContextAccessor httpContextAccessor) : base(options)
     {
-        _currentUserId = httpContextAccessor.HttpContext?.User?.FindFirst("sub")?.Value ?? "anonymous";
+        _currentUserId = httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Name)?.Value ?? "anonymous";
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -49,21 +50,32 @@ public class AppDbContext : DbContext
 
         foreach (var entry in entries)
         {
-            var entityName = entry.Entity.GetType().Name;
-            var entityId = entry.Properties.FirstOrDefault(p => p.Metadata.IsPrimaryKey())?.CurrentValue?.ToString();
+            var entityType = entry.Entity.GetType().Name;
+            var entityName = entry.Entity.GetType().GetProperty("Name")?.GetValue(entry.Entity)?.ToString();
+            var entityId = entry.Entity.GetType().GetProperty("Id")?.GetValue(entry.Entity).ToString();
 
             if (entry.State == EntityState.Added)
             {
                 foreach (var prop in entry.Properties)
                 {
+                    var allowedProps = new[] { "CreatedBy" };
+                    var newValue = prop.CurrentValue;
+
+                    if (!allowedProps.Contains(prop.Metadata.Name))
+                        continue;
+
+                    if (newValue == null || IsDefaultValue(newValue))
+                        continue;
+
                     auditLogs.Add(new AuditLog
                     {
                         ActionType = AuditActionType.Create,
+                        EntityType = entityType,
                         EntityName = entityName,
                         EntityId = entityId,
                         Property = prop.Metadata.Name,
                         OldValue = null,
-                        NewValue = prop.CurrentValue?.ToString(),
+                        NewValue = newValue.ToString(),
                         UserId = _currentUserId
                     });
                 }
@@ -106,5 +118,20 @@ public class AppDbContext : DbContext
         }
 
         AuditLogs.AddRange(auditLogs);
+    }
+
+
+    private bool IsDefaultValue(object value)
+    {
+        if (value == null) return true;
+
+        var type = value.GetType();
+
+        if (type.IsValueType)
+        {
+            return value.Equals(Activator.CreateInstance(type));
+        }
+
+        return false;
     }
 }

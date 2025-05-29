@@ -28,6 +28,7 @@ public static class ViewModelExtensions
             Name = product.Name,
             Image = product.Image,
             UnitPrice = product.UnitPrice,
+            Barcode = product.Barcode,
             Quantity = product.Quantity,
             Category = product.Category?.ToViewModel(),
         };
@@ -58,5 +59,27 @@ public static class ViewModelExtensions
     public static IEnumerable<BoxViewModel> ToViewModel(this IEnumerable<BoxDTO> boxes)
     {
         return boxes.Select(ToViewModel);
+    }
+
+    public static AuditLogViewModel ToViewModel(this AuditLogDTO auditLog)
+    {
+        return new AuditLogViewModel
+        {
+            Id = auditLog.Id,
+            EntityId = auditLog.EntityId,
+            EntityType = auditLog.EntityType,
+            EntityName = auditLog.EntityName,
+            ActionType = auditLog.ActionType,
+            Property = auditLog.Property,
+            OldValue = auditLog.OldValue,
+            NewValue = auditLog.NewValue,
+            UserId = auditLog.UserId,
+            Timestamp = auditLog.Timestamp,
+        };
+    }
+
+    public static IEnumerable<AuditLogViewModel> ToViewModel(this IEnumerable<AuditLogDTO> auditLogs)
+    {
+        return auditLogs.Select(ToViewModel);
     }
 }

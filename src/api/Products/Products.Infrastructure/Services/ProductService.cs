@@ -50,12 +50,16 @@ public class ProductService(IProductRepository productRepository, ICategoryRepos
             return Result.Fail(errors);
         }
 
+        var category = await _categoryRepository.GetByIdAsync(entity.Category.Id);
+
         var product = new Product
         {
             Name = entity.Name,
             Image = entity.Image,
             UnitPrice = entity.UnitPrice,
             Quantity = entity.Quantity,
+            Barcode = entity.Barcode,
+            Category = category,
             CreatedBy = createdBy,
             UpdatedBy = createdBy
         };
@@ -88,10 +92,13 @@ public class ProductService(IProductRepository productRepository, ICategoryRepos
         {
             return Result.Fail(errors);
         }
+        var category = await _categoryRepository.GetByIdAsync(entity.Category.Id);
 
         existingProduct.Name = entity.Name;
         existingProduct.Image = entity.Image;
         existingProduct.Quantity = entity.Quantity;
+        existingProduct.Barcode = entity.Barcode;
+        existingProduct.Category = category;
         existingProduct.UnitPrice = entity.UnitPrice;
         existingProduct.UpdatedBy = updatedBy;
 

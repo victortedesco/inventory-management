@@ -15,6 +15,9 @@ export const getAllCategories: (
       Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
   });
+  if (response.status === 204) {
+    return [];
+  }
   const data = await response.json();
   return data as Category[];
 };
@@ -43,7 +46,8 @@ export const postCategory: (request: CreateCategoryRequest) => Promise<Category 
     },
     body: JSON.stringify(request)
   });
-  if (response.status === 404) {
+  if (response.status === 404 || response.status === 400) {
+    console.error("Error creating category:", response.statusText);
     return null;
   }
   const data = await response.json();
@@ -59,7 +63,8 @@ export const updateCategory: (id: number, request: CreateCategoryRequest) => Pro
     },
     body: JSON.stringify(request)
   });
-  if (response.status === 404) {
+  if (response.status === 404 || response.status === 400) {
+    console.error("Error updating category:", response.statusText);
     return null;
   }
   const data = await response.json();

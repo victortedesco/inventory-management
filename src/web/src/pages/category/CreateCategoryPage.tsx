@@ -1,15 +1,11 @@
 import { SideBar } from "@/components/SideBar";
 import Category from "@/models/category.model";
-import User, { formatCPF } from "@/models/user.model";
 import { CreateCategoryRequest } from "@/requests/add-category-request";
 import { decodeToken } from "@/services/auth.service";
 import { getCategoryById, postCategory, updateCategory } from "@/services/category.service";
 import {
-  getRoles,
   getRolesWhoCanEdit,
-  getUserById,
 } from "@/services/user.service";
-import { request } from "http";
 import { Menu } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
@@ -46,7 +42,7 @@ const CreateCategoryPage = () => {
 
       if (!decodedToken || !canEditRoles.includes(decodedToken.role)) {
         toast.error("Você não tem permissão para acessar esta página.");
-        navigate("/users");
+        navigate("/categories");
         return;
       }
 

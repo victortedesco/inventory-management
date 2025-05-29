@@ -3,8 +3,8 @@ import Category from "@/models/category.model";
 import { formatMoney } from "@/models/product.model";
 import { decodeToken } from "@/services/auth.service";
 import { getAllCategories } from "@/services/category.service";
-import { getAllUsers, getRolesWhoCanEdit } from "@/services/user.service";
-import { AArrowDown, Mails, Menu, Pencil, ShoppingBag, Trash, BadgeDollarSign} from "lucide-react";
+import { getRolesWhoCanEdit } from "@/services/user.service";
+import { AArrowDown, Menu, Pencil, ShoppingBag, Trash, BadgeDollarSign} from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 
@@ -147,7 +147,6 @@ const CategoryPage = () => {
               <table className="min-w-full bg-white border text-lg md:text-base">
                 <thead className="bg-color-3 text-black">
                   <tr>
-                    <th className="w-10 px-4 py-3 border ">⭐</th>
                     <th className="px-4 py-3 border ">
                       Nome
                     </th>
@@ -166,9 +165,6 @@ const CategoryPage = () => {
                         index % 2 === 0 ? "bg-color-1" : "bg-color-2"
                       }`}
                     >
-                      <td className="border px-4 py-3">
-                        <input type="checkbox" className="w-4 h-4" />
-                      </td>
                       <td className="border  px-4 py-3">
                         {category.name} 
                       </td>

@@ -13,5 +13,5 @@ public class AuditLogDTO
     public string OldValue { get; set; }
     public string NewValue { get; set; }
     public string UserId { get; set; }
-    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+    public DateTime Timestamp { get; set; }
 }

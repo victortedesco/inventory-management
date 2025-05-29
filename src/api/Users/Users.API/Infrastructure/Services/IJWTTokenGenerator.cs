@@ -22,7 +22,7 @@ public class JWTTokenGenerator(IConfiguration configuration) : IJWTTokenGenerato
         {
             new("sub", user.Id.ToString()),
             new("jti", Guid.NewGuid().ToString()),
-            new("name", user.UserName),
+            new(ClaimTypes.Name, user.UserName),
             new("role", user.Role)
         };
 

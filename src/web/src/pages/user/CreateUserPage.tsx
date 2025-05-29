@@ -99,9 +99,24 @@ const CreateUserPage = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    toast.info("Cadastrando usuário...");
-    console.log(formData);
-    toast.success("Usuário cadastrado.");
+    if (userId) {
+      // Atualizar usuário
+      const updatedUser: User = {
+        ...formData,
+        id: userId,
+      };
+      // Aqui você deve chamar a função de atualização do usuário
+      // Exemplo: await updateUser(updatedUser);
+      toast.success("Usuário atualizado com sucesso!");
+    } else {
+      // Criar novo usuário
+      const newUser: User = {
+        ...formData,
+      };
+      // Aqui você deve chamar a função de criação do usuário
+      // Exemplo: await createUser(newUser);
+      toast.success("Usuário criado com sucesso!");
+    }
   };
 
   if (loading) {
@@ -177,6 +192,7 @@ const CreateUserPage = () => {
                 onChange={handleChange}
                 className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
                 required
+                disabled={!!userId}
               />
 
               <input

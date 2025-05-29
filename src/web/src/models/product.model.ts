@@ -3,9 +3,10 @@ import Category from "./category.model";
 export default interface Product {
   id: string;
   name: string;
-  image: File | string;
+  image: string;
   unitPrice: number;
   quantity: number;
+  barcode: string;
   category: Category;
 }
 
