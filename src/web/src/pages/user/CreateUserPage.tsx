@@ -88,17 +88,24 @@ const CreateUserPage = () => {
   }, [userId]);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    let newValue = value;
-    if (name === "cpf") {
-      newValue = formatCPF(value);
-      setFormData({ ...formData, [name]: newValue.replace(/\D/g, "") });
-      return;
-    }
+  e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+) => {
+  const { name, value } = e.target;
+  let newValue = value;
+
+  if (name === "cpf") {
+    const numericValue = value.replace(/\D/g, '');
+
+    const limitedValue = numericValue.slice(0, 11);
+
+    newValue = formatCPF(limitedValue);
+
     setFormData({ ...formData, [name]: newValue });
-  };
+    return;
+  }
+
+  setFormData({ ...formData, [name]: newValue });
+};
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

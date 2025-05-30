@@ -1,58 +1,59 @@
 import { SideBar } from "@/components/SideBar";
 import Category from "@/models/category.model";
-import { formatMoney } from "@/models/product.model";
+import Product, { formatBarCode, formatMoney } from "@/models/product.model";
 import { decodeToken } from "@/services/auth.service";
-import { getAllCategories } from "@/services/category.service";
-import { getRolesWhoCanEdit } from "@/services/user.service";
+import { getCategoryById } from "@/services/category.service";
 import {
-  AArrowDown,
-  Menu,
-  Pencil,
-  ShoppingBag,
-  Trash,
-  BadgeDollarSign,
-  Eye,
-} from "lucide-react";
+  deleteProduct,
+  getAllProducts,
+  getAllProductsByCategoryId,
+} from "@/services/product.service";
+import { getRolesWhoCanEdit } from "@/services/user.service";
+import { Eye, Menu, Pencil, Trash } from "lucide-react";
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router";
-
-type FilterOption = "name" | "productCount" | "value";
+import { useNavigate, useParams } from "react-router";
+import { toast } from "sonner";
 
 const CategoryPage = () => {
   const navigate = useNavigate();
-  const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [canEdit, setCanEdit] = useState<boolean>(false);
+  const { id } = useParams();
+
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [categoryId, setCategoryId] = useState<string | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [category, setCategory] = useState<Category>();
+  const [canEdit, setCanEdit] = useState<boolean>(true);
+
+  useEffect(() => {
+    setCategoryId(id || null);
+  }, [id]);
 
   useEffect(() => {
     const fetchData = async () => {
-      const categories = await getAllCategories();
-      setCategories(categories);
       const decodedToken = decodeToken(localStorage.getItem("token"));
       const canEdit = await getRolesWhoCanEdit();
       setCanEdit(canEdit.includes(decodedToken!.role));
+      if (!decodedToken || !canEdit.includes(decodedToken.role)) {
+        toast.error("Você não tem permissão para acessar esta página.");
+        navigate("/categories");
+        return;
+      }
+      if (categoryId) {
+        const category = await getCategoryById(Number(categoryId));
+        const products = await getAllProductsByCategoryId(Number(categoryId));
+        if (!category) {
+          toast.error("Categoria não encontrada");
+          navigate("/categories");
+          return;
+        }
+        setCategory(category);
+        setProducts(products);
+      }
     };
-
     const token = localStorage.getItem("token");
     if (!token) navigate("/login");
     fetchData().catch(console.error);
-  }, [navigate]);
-
-  const totalCategories = categories.length;
-
-  const [showFilterOptions, setShowFilterOptions] = useState<boolean>(false);
-  const [selectedFilter, setSelectedFilter] = useState<FilterOption>("name");
-
-  const handleFilterSelect = (filter: FilterOption) => {
-    setSelectedFilter(filter);
-    setShowFilterOptions(false);
-  };
-
-  const filterIcons: Record<FilterOption, React.JSX.Element> = {
-    name: <AArrowDown size={24} />,
-    productCount: <ShoppingBag size={24} />,
-    value: <BadgeDollarSign size={24} />,
-  };
+  }, [categoryId]);
 
   return (
     <div className="flex min-h-screen">
@@ -75,139 +76,98 @@ const CategoryPage = () => {
         >
           <Menu size={32} />
         </button>
-
-        {/* Categorias fofas */}
-
         <div className="flex flex-col md:flex-row">
           <main className="w-full p-4">
-            <div className="flex flex-col md:flex-row justify-between items-center mb-4">
-              <div className="text-center md:text-left mb-2 md:mb-0">
-                <h2 className="text-2xl md:text-lg font-semibold">
-                  Categorias
-                </h2>
-                <p className="text-base md:text-sm">
-                  {totalCategories} categorias cadastradas
-                </p>
-              </div>
-
-              {/* Formulário superior */}
-              <form className="flex flex-nowrap sm:justify-end gap-2 w-full sm:max-w-md max-w-xs bg-white text-black border border-[--color-color-3] p-2 rounded-lg">
-                <input
-                  type="text"
-                  placeholder="Pesquisar por..."
-                  className="border p-1.5 rounded text-base w-full sm:w-40"
-                />
-                <div className="relative inline-block text-left">
-                  <button
-                    type="button"
-                    className="border p-1.5 rounded text-base"
-                    onClick={() => setShowFilterOptions(!showFilterOptions)}
-                  >
-                    {filterIcons[selectedFilter]}
-                  </button>
-
-                  {showFilterOptions && (
-                    <div className="absolute top-full mt-1 w-48 bg-white border border-gray-300 rounded shadow z-10">
-                      <p className="px-3 py-2 font-semibold border-b">
-                        Pesquisar por:
-                      </p>
-                      <ul className="flex flex-col">
-                        <li
-                          className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
-                          onClick={() => handleFilterSelect("name")}
-                        >
-                          Nome
-                        </li>
-                        <li
-                          className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
-                          onClick={() => handleFilterSelect("productCount")}
-                        >
-                          Quantidade de produtos
-                        </li>
-                        <li
-                          className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
-                          onClick={() => handleFilterSelect("value")}
-                        >
-                          Valor
-                        </li>
-                      </ul>
-                    </div>
-                  )}
-                </div>
-
-                <button
-                  type="button"
-                  className="border p-1.5 rounded text-base"
-                  onClick={() => navigate("/category")}
-                  disabled={!canEdit}
-                >
-                  + Categoria
-                </button>
-                <button
-                  type="submit"
-                  className="border p-1.5 rounded text-base"
-                >
-                  Enviar
-                </button>
-              </form>
+            <div className="flex flex-col">
+              <p>Nome: {category?.name}</p>
+              <p>Valor Total: {formatMoney(category?.value ?? 0)}</p>
+              <p>Estoque disponível: {category?.totalStock}</p>
             </div>
-
-            {/* Formulário inferior (tabela) */}
-            <form className="overflow-x-auto">
-              <table className="min-w-full bg-white border text-lg md:text-base">
-                <thead className="bg-color-3 text-black">
-                  <tr>
-                    <th className="px-4 py-3 border ">Nome</th>
-                    <th className="px-4 py-3 border ">
-                      Quantidade de Produtos
-                    </th>
-                    <th className="px-4 py-3 border ">Valor Total</th>
-                    <th className={canEdit ? `px-4 py-3 border` : `hidden`}>
-                      Ações
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {categories.map((category, index) => (
-                    <tr
-                      key={index}
-                      className={`text-center ${
-                        index % 2 === 0 ? "bg-color-1" : "bg-color-2"
-                      }`}
-                    >
-                      <td className="border  px-4 py-3">{category.name}</td>
-                      <td className="border  px-4 py-3">
-                        {category.productCount}
-                      </td>
-                      <td className="border  px-4 py-3">
-                        {formatMoney(category.value)}
-                      </td>
-                      <td
-                        className={
-                          canEdit ? `border gap-x-2 px-4 py-3` : `hidden`
-                        }
-                      >
-                        <button
-                          onClick={() => navigate(`/category/${category.id}`)}
+            <div>
+              <main>
+                <form className="overflow-x-auto rounded-lg">
+                  <table className="min-w-full bg-white border text-lg md:text-base">
+                    <thead className="bg-color-3 text-black">
+                      <tr>
+                        <th className="px-4 py-3 border ">Imagem</th>
+                        <th className="px-4 py-3 border ">
+                          Nome (Código de Barras)
+                        </th>
+                        <th className="px-4 py-3 border ">Estoque</th>
+                        <th className="px-4 py-3 border ">Preço Unitário</th>
+                        <th className="px-4 py-3 border ">Valor Total</th>
+                        <th className={canEdit ? `px-4 py-3 border` : `hidden`}>
+                          Ações
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {products.map((product, index) => (
+                        <tr
+                          key={index}
+                          className={`text-center ${
+                            index % 2 === 0 ? "bg-color-1" : "bg-color-2"
+                          }`}
                         >
-                          <Eye size={32} />
-                        </button>
-                        <button
-                          onClick={() =>
-                            navigate(`/category/edit/${category.id}`)
-                          }
-                        >
-                          <Pencil size={32} />
-                        </button>
-                        <button>
-                          <Trash size={32} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </form>
+                          <td className="flex justify-center border px-4 py-3">
+                            {product.image ? (
+                              <img
+                                src={product.image}
+                                alt={product.name}
+                                className="h-16 object-cover rounded"
+                              />
+                            ) : (
+                              <img
+                                src="no-image.png"
+                                alt="Imagem não disponível"
+                                className="h-16 object-cover rounded"
+                              />
+                            )}
+                          </td>
+                          <td className="border  px-4 py-3">{`${
+                            product.name
+                          } (${formatBarCode(product.barcode)})`}</td>
+                          <td className="border  px-4 py-3">
+                            {product.quantity}
+                          </td>
+                          <td className="border  px-4 py-3">
+                            {formatMoney(product.unitPrice)}
+                          </td>
+                          <td className="border  px-4 py-3">
+                            {formatMoney(product.unitPrice * product.quantity)}
+                          </td>
+                          <td
+                            className={
+                              canEdit ? `border gap-x-2 px-4 py-3` : `hidden`
+                            }
+                          >
+                            <button
+                              onClick={() => navigate(`/product/${product.id}`)}
+                            >
+                              <Eye size={32} />
+                            </button>
+                            <button
+                              onClick={() =>
+                                navigate(`/product/edit/${product.id}`)
+                              }
+                            >
+                              <Pencil size={32} />
+                            </button>
+                            <button
+                              onClick={async () =>
+                                await deleteProduct(product.id)
+                              }
+                            >
+                              <Trash size={32} />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </form>
+              </main>
+            </div>
           </main>
         </div>
       </div>

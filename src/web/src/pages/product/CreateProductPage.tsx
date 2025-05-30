@@ -28,8 +28,8 @@ const CreateProductPage = () => {
 
   const [formData, setFormData] = useState({
     name: "",
-    quantity: 0,
-    unitPrice: 0,
+    quantity: "",
+    unitPrice: "",
     category: "",
     barcode: "",
     image: "",
@@ -60,8 +60,8 @@ const CreateProductPage = () => {
         setProduct(product);
         setFormData({
           name: product.name || "",
-          quantity: product.quantity,
-          unitPrice: product.unitPrice,
+          quantity: product.quantity.toString(),
+          unitPrice: product.unitPrice.toString(),
           category: product.category?.id || "",
           barcode: product.barcode || "",
           image: product.image || "",
@@ -111,8 +111,8 @@ const CreateProductPage = () => {
           image: formData.image,
           barcode: formData.barcode,
           categoryId: formData.category.toString(),
-          unitPrice: formData.unitPrice,
-          quantity: formData.quantity,
+          unitPrice: Number(formData.unitPrice),
+          quantity: Number(formData.quantity),
         };
         await createProduct(request);
       } else {
@@ -122,8 +122,8 @@ const CreateProductPage = () => {
           image: formData.image,
           barcode: formData.barcode,
           categoryId: formData.category.toString(),
-          unitPrice: formData.unitPrice,
-          quantity: formData.quantity,
+          unitPrice: Number(formData.unitPrice),
+          quantity: Number(formData.quantity),
         };
         await updateProduct(productId, request);
       }
@@ -194,7 +194,7 @@ const CreateProductPage = () => {
                 name="quantity"
                 step="1"
                 min="0"
-                max="999999.99"
+                max="999999"
                 placeholder="Quantidade"
                 value={formData.quantity}
                 onChange={handleChange}

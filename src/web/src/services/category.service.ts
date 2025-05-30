@@ -22,7 +22,7 @@ export const getAllCategories: (
   return data as Category[];
 };
 
-export const getCategoryById: (id: string) => Promise<Category | null> = async (id) => {
+export const getCategoryById: (id: number) => Promise<Category | null> = async (id) => {
   const response = await fetch(`${CATEGORY_API_URL}/${id}`, {
     method: "GET",
     headers: {
@@ -70,3 +70,18 @@ export const updateCategory: (id: number, request: CreateCategoryRequest) => Pro
   const data = await response.json();
   return data as Category;
 } 
+
+export const deleteCategory: (id: number) => Promise<boolean> = async(id) => {
+  const response = await fetch(`${CATEGORY_API_URL}/${id}`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  });
+  if (response.status === 404 || response.status === 400) {
+    console.error("Error deleting category:", response.statusText);
+    return false;
+  }
+  return true;
+}

@@ -22,6 +22,25 @@ export const getAllProducts: (
   return data as Product[];
 };
 
+export const getAllProductsByCategoryId: (
+  categoryId: number,
+  skip?: number,
+  take?: number,
+) => Promise<Product[]> = async (categoryId) => {
+  const response = await fetch(`${PRODUCT_API_URL}/category/${categoryId}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  });
+  if (response.status === 204) {
+    return [];
+  }
+  const data = await response.json();
+  return data as Product[];
+};
+
 export const getProductById: (id: string) => Promise<Product | null> = async (id) => {
   const response = await fetch(`${PRODUCT_API_URL}/${id}`, {
     method: "GET",
@@ -69,4 +88,19 @@ export const updateProduct: (id: string, request: CreateProductRequest) => Promi
   }
   const data = await response.json();
   return data as Product;
+}
+
+export const deleteProduct: (id: string) => Promise<boolean> = async(id) => {
+  const response = await fetch(`${PRODUCT_API_URL}/${id}`, {
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  });
+  if (response.status === 404 || response.status === 400) {
+    console.error("Error deleting product:", response.statusText);
+    return false;
+  }
+  return true;
 }

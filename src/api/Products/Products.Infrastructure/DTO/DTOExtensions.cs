@@ -29,6 +29,7 @@ public static class DTOExtensions
         {
             Id = category.Id,
             Name = category.Name,
+            TotalStock = (int)category.Products.Sum(p => p.Quantity),
             ProductCount = category.Products.Count,
             Value = category.Products.Sum(p => p.UnitPrice * p.Quantity),
         };

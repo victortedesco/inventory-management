@@ -1,6 +1,6 @@
 import { SideBar } from "@/components/SideBar";
 import User, { maskCPF } from "@/models/user.model";
-import { decodeToken } from "@/services/auth.service";
+import { decodeToken, logout } from "@/services/auth.service";
 import { getAllUsers, getRolesWhoCanEdit } from "@/services/user.service";
 import { AArrowDown, IdCard, Mails, Menu, Pencil, Trash } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -8,7 +8,7 @@ import { useNavigate } from "react-router";
 
 type FilterOption = "name" | "cpf" | "email";
 
-const UserPage = () => {
+const ListUsersPage = () => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
   const [users, setUsers] = useState<User[]>([]);
@@ -125,7 +125,7 @@ const UserPage = () => {
 
                 <button
                   type="button"
-                  className="border p-1.5 rounded text-base"
+                  className="border p-1.5 rounded text-base bg-color-2"
                   onClick={() => navigate("/user/edit")}
                   disabled={!canEdit}
                 >
@@ -141,17 +141,17 @@ const UserPage = () => {
             </div>
 
             {/* Formulário inferior (tabela) */}
-            <form className="overflow-x-auto">
+            <form className="overflow-x-auto rounded-lg">
               <table className="min-w-full bg-white border text-lg md:text-base">
-                <thead className="bg-color-3 text-black">
+                <thead className="bg-color-3 text-black border border-black ">
                   <tr>
-                    <th className="px-4 py-3 border ">
+                    <th className="px-4 py-3  ">
                       Nome (Nome de Usuário)
                     </th>
-                    <th className="px-4 py-3 border ">CPF</th>
-                    <th className="px-4 py-3 border ">Email</th>
-                    <th className="px-4 py-3 border ">Cargo</th>
-                    <th className={canEdit ? `px-4 py-3 border` : `hidden`}>
+                    <th className="px-4 py-3 ">CPF</th>
+                    <th className="px-4 py-3 ">Email</th>
+                    <th className="px-4 py-3 ">Cargo</th>
+                    <th className={canEdit ? `px-4 py-3 ` : `hidden`}>
                       Ações
                     </th>
                   </tr>
@@ -164,20 +164,17 @@ const UserPage = () => {
                         index % 2 === 0 ? "bg-color-1" : "bg-color-2"
                       }`}
                     >
-                      <td className="border  px-4 py-3">
+                      <td className="border border-black   px-4 py-3">
                         {user.displayName} <span>({user.userName})</span>
                       </td>
-                      <td className="border  px-4 py-3">{maskCPF(user.cpf)}</td>
-                      <td className="border  px-4 py-3">{user.email}</td>
-                      <td className="border  px-4 py-3">{user.role}</td>
-                      <td className={canEdit ? `border  px-4 py-3` : `hidden`}>
+                      <td className="border border-black  px-4 py-3">{maskCPF(user.cpf)}</td>
+                      <td className="border border-black  px-4 py-3">{user.email}</td>
+                      <td className="border border-black px-4 py-3">{user.role}</td>
+                      <td className={canEdit ? `border border-black  px-4 py-3` : `hidden`}>
                         <button
                           onClick={() => navigate(`/user/edit/${user.id}`)}
                         >
                           <Pencil size={32} />
-                        </button>
-                        <button>
-                          <Trash size={32} />
                         </button>
                       </td>
                     </tr>
@@ -192,4 +189,4 @@ const UserPage = () => {
   );
 };
 
-export default UserPage;
+export default ListUsersPage;

@@ -10,6 +10,7 @@ public static class ViewModelExtensions
         {
             Id = category.Id,
             Name = category.Name,
+            TotalStock = category.TotalStock,
             ProductCount = category.ProductCount,
             Value = category.Value,
         };

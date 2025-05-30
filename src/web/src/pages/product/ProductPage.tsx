@@ -1,63 +1,57 @@
 import { SideBar } from "@/components/SideBar";
+import Category from "@/models/category.model";
 import Product, { formatMoney } from "@/models/product.model";
 import { decodeToken } from "@/services/auth.service";
-import { getAllCategories } from "@/services/category.service";
-import { getAllProducts } from "@/services/product.service";
+import { getCategoryById } from "@/services/category.service";
+import { getAllProducts, getProductById } from "@/services/product.service";
 import { getRolesWhoCanEdit } from "@/services/user.service";
-import {
-  AArrowDown,
-  Banknote,
-  Eye,
-  GalleryHorizontalEnd,
-  Hash,
-  Menu,
-  Pencil,
-  Trash,
-} from "lucide-react";
+import { Menu } from "lucide-react";
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router";
-
-type FilterOption = "name" | "category" | "quantity" | "price";
+import { useNavigate, useParams } from "react-router";
+import { toast } from "sonner";
 
 const ProductPage = () => {
   const navigate = useNavigate();
+  const { id } = useParams();
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [products, setProducts] = useState<Product[]>([]);
+  const [productId, setProductId] = useState<string | null>(null);
+  const [product, setProduct] = useState<Product>();
   const [canEdit, setCanEdit] = useState<boolean>(true);
+
+  useEffect(() => {
+    if (!id) {
+      toast.error("Produto não encontrado");
+      navigate("/products");
+      return;
+    }
+    setProductId(id || null);
+  }, [id]);
 
   useEffect(() => {
     const fetchData = async () => {
       const decodedToken = decodeToken(localStorage.getItem("token"));
       const canEdit = await getRolesWhoCanEdit();
       setCanEdit(canEdit.includes(decodedToken!.role));
-      const products = await getAllProducts();
-      setProducts(products);
+      if (!decodedToken || !canEdit.includes(decodedToken.role)) {
+        toast.error("Você não tem permissão para acessar esta página.");
+        navigate("/categories");
+        return;
+      }
+      if (productId) {
+        const product = await getProductById(productId);
+        if (!product) {
+          toast.error("Produto não encontrado");
+          navigate("/products");
+          return;
+        }
+        setProduct(product);
+      }
     };
     const token = localStorage.getItem("token");
     if (!token) navigate("/login");
     fetchData().catch(console.error);
-  }, [navigate]);
-
-  const totalProducts = products.length;
-  const totalStock = products.reduce(
-    (sum, product) => sum + product.quantity,
-    0
-  );
-
-  const [showFilterOptions, setShowFilterOptions] = useState<boolean>(false);
-  const [selectedFilter, setSelectedFilter] = useState<FilterOption>("name");
-
-  const handleFilterSelect = (filter: FilterOption) => {
-    setSelectedFilter(filter);
-    setShowFilterOptions(false);
-  };
-
-  const filterIcons: Record<FilterOption, React.JSX.Element> = {
-    name: <AArrowDown size={24} />, //Nome do produto
-    category: <GalleryHorizontalEnd size={24} />, // Categoria
-    quantity: <Hash size={24} />, // Quantidade
-    price: <Banknote size={24} />, // Preço
-  };
+  }, [productId]);
 
   return (
     <div className="flex min-h-screen">
@@ -81,162 +75,63 @@ const ProductPage = () => {
           <Menu size={32} />
         </button>
 
-        {/* Produtos fofos */}
-
         <div className="flex flex-col md:flex-row">
-          <main className="w-full p-4">
-            <div className="flex flex-col md:flex-row justify-between items-center mb-4">
-              <div className="text-center md:text-left mb-2 md:mb-0">
-                <h2 className="text-2xl md:text-lg font-semibold">Produtos</h2>
-                <p className="text-base md:text-sm">
-                  {totalProducts} produtos cadastrados
-                </p>
-                <p className="text-base md:text-sm">
-                  Estoque total: {totalStock}
-                </p>
-              </div>
-
-              {/* Formulário superior */}
-              <form className="flex flex-nowrap sm:justify-end gap-2 w-full sm:max-w-md max-w-xs bg-white text-black border border-[--color-color-3] p-2 rounded-lg">
-                <input
-                  type="text"
-                  placeholder="Pesquisar por..."
-                  className="border p-1.5 rounded text-base w-full sm:w-40"
+          <main className="w-full p-4 flex flex-col items-center md:items-start md:flex-row gap-8">
+            {/* Imagem */}
+            <div className="w-48 h-48 bg-gray-300 rounded-md overflow-hidden">
+              {product?.image ? (
+                <img
+                  src={product.image}
+                  alt={product.name}
+                  className="w-full h-full object-cover object-center"
                 />
-                <div className="relative inline-block text-left">
-                  <button
-                    type="button"
-                    className="border p-1.5 rounded text-base"
-                    onClick={() => setShowFilterOptions(!showFilterOptions)}
-                  >
-                    {filterIcons[selectedFilter]}
-                  </button>
-
-                  {showFilterOptions && (
-                    <div className="absolute top-full mt-1 w-48 bg-white border border-gray-300 rounded shadow z-10">
-                      <p className="px-3 py-2 font-semibold border-b">
-                        Pesquisar por:
-                      </p>
-                      <ul className="flex flex-col">
-                        <li
-                          className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
-                          onClick={() => handleFilterSelect("name")}
-                        >
-                          Nome do produto
-                        </li>
-                        <li
-                          className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
-                          onClick={() => handleFilterSelect("category")}
-                        >
-                          Categoria
-                        </li>
-                        <li
-                          className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
-                          onClick={() => handleFilterSelect("quantity")}
-                        >
-                          Quantidade
-                        </li>
-                        <li
-                          className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
-                          onClick={() => handleFilterSelect("price")}
-                        >
-                          Preço
-                        </li>
-                      </ul>
-                    </div>
-                  )}
-                </div>
-
-                <button
-                  type="button"
-                  className="border p-1.5 rounded text-base"
-                  onClick={() => navigate("/product/edit")}
-                >
-                  + Produto
-                </button>
-                <button
-                  type="submit"
-                  className="border p-1.5 rounded text-base"
-                >
-                  Enviar
-                </button>
-              </form>
+              ) : (
+                <img
+                  src="/no-image.png"
+                  alt="Imagem não disponível"
+                  className="w-full h-full object-cover object-center"
+                />
+              )}
             </div>
 
-            {/* Formulário inferior (tabela) */}
-            <form className="overflow-x-auto">
-              <table className="min-w-full bg-white border text-lg md:text-base">
-                <thead className="bg-color-3 text-black">
-                  <tr>
-                    <th className="px-4 py-3 border ">Imagem</th>
-                    <th className="px-4 py-3 border ">Nome</th>
-                    <th className="px-4 py-3 border ">Categoria</th>
-                    <th className="px-4 py-3 border ">Estoque</th>
-                    <th className="px-4 py-3 border ">Preço</th>
-                    <th className="px-4 py-3 border ">Ações</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {products.map((product, index) => (
-                    <tr
-                      key={index}
-                      className={`text-center ${
-                        index % 2 === 0 ? "bg-color-1" : "bg-color-2"
-                      }`}
-                    >
-                      <td className="flex justify-center border px-4 py-3">
-                        {product.image ? (
-                          <img
-                            src={product.image}
-                            alt={product.name}
-                            className="h-16 object-cover rounded"
-                          />
-                        ) : (
-                          <img
-                            src="no-image.png"
-                            alt="Imagem não disponível"
-                            className="h-16 object-cover rounded"
-                          />
-                        )}
-                      </td>
-                      <td className="border  px-4 py-3">{product.name}</td>
-                      <td className="border  px-4 py-3">
-                        {product.category
-                          ? product.category.name
-                          : "Sem categoria"}
-                      </td>
-                      <td className="border  px-4 py-3">{product.quantity}</td>
-                      <td className="border  px-4 py-3">
-                        {formatMoney(product.unitPrice)}
-                      </td>
-                      <td
-                        className={
-                          canEdit ? `border gap-x-2 px-4 py-3` : `hidden`
-                        }
-                      >
-                        <button
-                          onClick={() =>
-                            navigate(`/product/edit/${product.id}`)
-                          }
-                        >
-                          <Eye size={32} />
-                        </button>
-                        <button
-                          onClick={() =>
-                            navigate(`/product/edit/${product.id}`)
-                          }
-                        >
-                          <Pencil size={32} />
-                        </button>
-                        <button>
-                          <Trash size={32} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </form>
+            {/* Informações do produto */}
+            <div className="flex-1 space-y-2 text-left">
+              <p>
+                <strong>Nome:</strong> {product?.name}
+              </p>
+              <p>
+                <strong>Categoria:</strong> {product?.category?.name}
+              </p>
+              <p>
+                <strong>Preço unitário:</strong>{" "}
+                {formatMoney(product?.unitPrice || 0)}
+              </p>
+              <p>
+                <strong>Estoque disponível:</strong> {product?.quantity}
+              </p>
+              <p>
+                <strong>Valor Total:</strong>{" "}
+                {formatMoney(
+                  (product?.unitPrice || 0) * (product?.quantity || 0)
+                )}
+              </p>
+            </div>
+
+            {/* Histórico (simulação com 3 registros estáticos por enquanto) */}
+            <div className="w-full mt-6 md:mt-0 md:w-1/2">
+              <h2 className="font-semibold mb-2">Histórico</h2>
+              <div className="space-y-2">
+                <div className="bg-white p-3 rounded-md shadow-sm">
+                  Registro 1: Entrada de 10 unidades
+                </div>
+                <div className="bg-white p-3 rounded-md shadow-sm">
+                  Registro 2: Saída de 5 unidades
+                </div>
+                <div className="bg-white p-3 rounded-md shadow-sm">
+                  Registro 3: Atualização de preço
+                </div>
+              </div>
+            </div>
           </main>
         </div>
       </div>
