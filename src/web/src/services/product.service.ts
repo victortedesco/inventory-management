@@ -1,5 +1,5 @@
 import Product from "@/models/product.model";
-import { CreateProductRequest } from "@/requests/add-product-request";
+import { CreateProductRequest } from "@/requests/product-request.interfaces";
 
 const PRODUCT_API_URL =
   import.meta.env.VITE_PRODUCTS_API_URL + "/api/v1/products";
@@ -37,7 +37,7 @@ export const getProductById: (id: string) => Promise<Product | null> = async (id
   return data as Product;
 };
 
-export const postProduct: (request: CreateProductRequest) => Promise<Product | null> = async (request) => {
+export const createProduct: (request: CreateProductRequest) => Promise<Product | null> = async (request) => {
   const response = await fetch(`${PRODUCT_API_URL}`, {
     method: "POST",
     headers: {
@@ -54,7 +54,7 @@ export const postProduct: (request: CreateProductRequest) => Promise<Product | n
   return data as Product;
 }
 
-export const putProduct: (id: string, request: CreateProductRequest) => Promise<Product | null> = async (id, request) => {
+export const updateProduct: (id: string, request: CreateProductRequest) => Promise<Product | null> = async (id, request) => {
   const response = await fetch(`${PRODUCT_API_URL}/${id}`, {
     method: "PUT",
     headers: {

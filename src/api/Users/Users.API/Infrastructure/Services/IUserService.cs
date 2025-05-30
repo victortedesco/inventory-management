@@ -163,21 +163,18 @@ public class UserService(IUserRepository userRepository, IRoleRepository roleRep
         {
             errors.Add("User name cannot be a CPF");
         }
-        if (user.CPF.Length != 11)
-        {
-            errors.Add("CPF must have 11 characters");
-        }
-        if (!user.CPF.All(char.IsDigit))
-        {
-            errors.Add("CPF must contain only numbers");
-        }
         if (errors.Count > 0)
         {
             return Result.Fail(errors);
         }
 
-        user.Password = _passwordHasher.HashPassword(user.Password);
-        existingUser.Update(existingUser.UserName, user.DisplayName, user.Email, user.CPF, role, user.Password);
+        if (user.Password?.Length == 0)
+        {
+            user.Password = _passwordHasher.HashPassword(user.Password);
+        }
+        else user.Password = existingUser.Password;
+
+        existingUser.Update(existingUser.UserName, user.DisplayName, user.Email, role, user.Password);
 
         var result = await _userRepository.UpdateAsync(existingUser);
 

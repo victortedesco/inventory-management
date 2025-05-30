@@ -4,11 +4,19 @@ import { formatMoney } from "@/models/product.model";
 import { decodeToken } from "@/services/auth.service";
 import { getAllCategories } from "@/services/category.service";
 import { getRolesWhoCanEdit } from "@/services/user.service";
-import { AArrowDown, Menu, Pencil, ShoppingBag, Trash, BadgeDollarSign} from "lucide-react";
+import {
+  AArrowDown,
+  Menu,
+  Pencil,
+  ShoppingBag,
+  Trash,
+  BadgeDollarSign,
+  Eye,
+} from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 
-type FilterOption = "name" | "productCount" | "value" ;
+type FilterOption = "name" | "productCount" | "value";
 
 const CategoryPage = () => {
   const navigate = useNavigate();
@@ -74,7 +82,9 @@ const CategoryPage = () => {
           <main className="w-full p-4">
             <div className="flex flex-col md:flex-row justify-between items-center mb-4">
               <div className="text-center md:text-left mb-2 md:mb-0">
-                <h2 className="text-2xl md:text-lg font-semibold">Categorias</h2>
+                <h2 className="text-2xl md:text-lg font-semibold">
+                  Categorias
+                </h2>
                 <p className="text-base md:text-sm">
                   {totalCategories} categorias cadastradas
                 </p>
@@ -147,10 +157,10 @@ const CategoryPage = () => {
               <table className="min-w-full bg-white border text-lg md:text-base">
                 <thead className="bg-color-3 text-black">
                   <tr>
+                    <th className="px-4 py-3 border ">Nome</th>
                     <th className="px-4 py-3 border ">
-                      Nome
+                      Quantidade de Produtos
                     </th>
-                    <th className="px-4 py-3 border ">Quantidade de Produtos</th>
                     <th className="px-4 py-3 border ">Valor Total</th>
                     <th className={canEdit ? `px-4 py-3 border` : `hidden`}>
                       Ações
@@ -165,15 +175,26 @@ const CategoryPage = () => {
                         index % 2 === 0 ? "bg-color-1" : "bg-color-2"
                       }`}
                     >
+                      <td className="border  px-4 py-3">{category.name}</td>
                       <td className="border  px-4 py-3">
-                        {category.name} 
+                        {category.productCount}
                       </td>
-                      <td className="border  px-4 py-3">{category.productCount}</td>
-                      <td className="border  px-4 py-3">{formatMoney(category.value)}</td>
-                      <td className={canEdit ? `border  px-4 py-3` : `hidden`}>
+                      <td className="border  px-4 py-3">
+                        {formatMoney(category.value)}
+                      </td>
+                      <td
+                        className={
+                          canEdit ? `border gap-x-2 px-4 py-3` : `hidden`
+                        }
+                      >
+                        <button
+                          onClick={() => navigate(`/category/${category.id}`)}
+                        >
+                          <Eye size={32} />
+                        </button>
                         <button
                           onClick={() =>
-                            navigate(`/category/${category.id}`)
+                            navigate(`/category/edit/${category.id}`)
                           }
                         >
                           <Pencil size={32} />

@@ -1,9 +1,16 @@
 import { SideBar } from "@/components/SideBar";
 import Category from "@/models/category.model";
 import Product from "@/models/product.model";
-import { CreateProductRequest } from "@/requests/add-product-request";
+import {
+  CreateProductRequest,
+  UpdateProductRequest,
+} from "@/requests/product-request.interfaces";
 import { getAllCategories } from "@/services/category.service";
-import { getProductById, postProduct, putProduct } from "@/services/product.service";
+import {
+  getProductById,
+  createProduct,
+  updateProduct,
+} from "@/services/product.service";
 import { Menu } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
@@ -21,8 +28,8 @@ const CreateProductPage = () => {
 
   const [formData, setFormData] = useState({
     name: "",
-    quantity: "",
-    unitPrice: "",
+    quantity: 0,
+    unitPrice: 0,
     category: "",
     barcode: "",
     image: "",
@@ -53,8 +60,8 @@ const CreateProductPage = () => {
         setProduct(product);
         setFormData({
           name: product.name || "",
-          quantity: product.quantity?.toString() || "",
-          unitPrice: product.unitPrice?.toString() || "",
+          quantity: product.quantity,
+          unitPrice: product.unitPrice,
           category: product.category?.id || "",
           barcode: product.barcode || "",
           image: product.image || "",
@@ -64,9 +71,7 @@ const CreateProductPage = () => {
       setLoading(false);
     };
 
-    if (productId !== undefined) {
-      fetchData().catch(console.error);
-    }
+    fetchData().catch(console.error);
   }, [productId]);
 
   const handleChange = (
@@ -94,25 +99,33 @@ const CreateProductPage = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    const request: CreateProductRequest = {
-      name: formData.name,
-      image: formData.image,
-      barcode: formData.barcode,
-      categoryId: formData.category.toString(),
-      unitPrice: parseFloat(formData.unitPrice),
-      quantity: parseInt(formData.quantity, 10),
-    };
-
     e.preventDefault();
     toast.info(productId ? "Atualizando produto..." : "Cadastrando produto...");
 
     try {
-      console.log(formData); // Aqui iria o envio à API
-      console.log(request); // Aqui iria o envio à API
-      if (productId) {
-        await putProduct(productId, request); // Simula o envio à API
+      console.log(formData);
+
+      if (!productId) {
+        const request: CreateProductRequest = {
+          name: formData.name,
+          image: formData.image,
+          barcode: formData.barcode,
+          categoryId: formData.category.toString(),
+          unitPrice: formData.unitPrice,
+          quantity: formData.quantity,
+        };
+        await createProduct(request);
       } else {
-        await postProduct(request); // Simula o envio à API
+        const request: UpdateProductRequest = {
+          id: productId,
+          name: formData.name,
+          image: formData.image,
+          barcode: formData.barcode,
+          categoryId: formData.category.toString(),
+          unitPrice: formData.unitPrice,
+          quantity: formData.quantity,
+        };
+        await updateProduct(productId, request);
       }
       toast.success("Produto salvo com sucesso!");
       navigate("/products");
@@ -246,14 +259,14 @@ const CreateProductPage = () => {
                   <img
                     src={formData.image}
                     alt="Preview"
-                    className="w-24 h-24 mt-2 object-cover rounded"
+                    className="h-24 mt-2 object-cover rounded"
                   />
                 )}
               </div>
 
               <button
                 type="submit"
-                className="bg-blue-500 text-white rounded py-2 hover:bg-blue-600 transition"
+                className="bg-color-1 text-white rounded py-2 hover:bg-color-3 transition"
               >
                 Confirmar
               </button>

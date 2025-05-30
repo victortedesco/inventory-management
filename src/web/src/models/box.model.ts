@@ -1,3 +1,5 @@
+import Product from "./product.model";
+
 export default interface Box {
   id: string;
   name: string;
@@ -8,5 +10,5 @@ export default interface Box {
   depth: number;
   height: number;
   width: number;
-  products: string[];
+  products: Product[];
 }

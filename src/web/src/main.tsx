@@ -20,14 +20,14 @@ createRoot(document.getElementById("root")!).render(
         <Route path="/" element={<App />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/products" element={<ProductPage />} />
-        <Route path="/product" element={<CreateProductPage />} />
-        <Route path="/product/:id" element={<CreateProductPage />} />
+        <Route path="/product/edit/" element={<CreateProductPage />} />
+        <Route path="/product/edit/:id" element={<CreateProductPage />} />
         <Route path="/users" element={<UserPage />} />
-        <Route path="/user" element={<CreateUserPage />} />
-        <Route path="/user/:id" element={<CreateUserPage />} />
+        <Route path="/user/edit/" element={<CreateUserPage />} />
+        <Route path="/user/edit/:id" element={<CreateUserPage />} />
         <Route path="/categories" element={<CategoryPage />} />
         <Route path="/category" element={<CreateCategoryPage />} />
-        <Route path="/category/:id" element={<CreateCategoryPage />} />
+        <Route path="/category/edit/:id" element={<CreateCategoryPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>

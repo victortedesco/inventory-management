@@ -7,6 +7,7 @@ import { getRolesWhoCanEdit } from "@/services/user.service";
 import {
   AArrowDown,
   Banknote,
+  Eye,
   GalleryHorizontalEnd,
   Hash,
   Menu,
@@ -149,9 +150,9 @@ const ProductPage = () => {
                 <button
                   type="button"
                   className="border p-1.5 rounded text-base"
-                  onClick={() => navigate("/product")}
+                  onClick={() => navigate("/product/edit")}
                 >
-                  + Itens
+                  + Produto
                 </button>
                 <button
                   type="submit"
@@ -168,7 +169,7 @@ const ProductPage = () => {
                 <thead className="bg-color-3 text-black">
                   <tr>
                     <th className="px-4 py-3 border ">Imagem</th>
-                    <th className="px-4 py-3 border ">Itens</th>
+                    <th className="px-4 py-3 border ">Nome</th>
                     <th className="px-4 py-3 border ">Categoria</th>
                     <th className="px-4 py-3 border ">Estoque</th>
                     <th className="px-4 py-3 border ">Preço</th>
@@ -200,15 +201,30 @@ const ProductPage = () => {
                       </td>
                       <td className="border  px-4 py-3">{product.name}</td>
                       <td className="border  px-4 py-3">
-                        {product.category ? product.category.name : "Sem categoria"}
+                        {product.category
+                          ? product.category.name
+                          : "Sem categoria"}
                       </td>
                       <td className="border  px-4 py-3">{product.quantity}</td>
                       <td className="border  px-4 py-3">
-                        { formatMoney(product.unitPrice) }
+                        {formatMoney(product.unitPrice)}
                       </td>
-                      <td className={canEdit ? `border  px-4 py-3` : `hidden`}>
+                      <td
+                        className={
+                          canEdit ? `border gap-x-2 px-4 py-3` : `hidden`
+                        }
+                      >
                         <button
-                          onClick={() => navigate(`/product/${product.id}`)}
+                          onClick={() =>
+                            navigate(`/product/edit/${product.id}`)
+                          }
+                        >
+                          <Eye size={32} />
+                        </button>
+                        <button
+                          onClick={() =>
+                            navigate(`/product/edit/${product.id}`)
+                          }
                         >
                           <Pencil size={32} />
                         </button>

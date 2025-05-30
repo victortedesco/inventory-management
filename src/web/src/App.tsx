@@ -11,7 +11,8 @@ const App = () => {
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) navigate("/login");
-  }, []);
+    navigate("/products");
+  }, [navigate]);
 
   return (
     <div className="flex min-h-screen">

@@ -1,11 +1,16 @@
 import { SideBar } from "@/components/SideBar";
 import Category from "@/models/category.model";
-import { CreateCategoryRequest } from "@/requests/add-category-request";
-import { decodeToken } from "@/services/auth.service";
-import { getCategoryById, postCategory, updateCategory } from "@/services/category.service";
 import {
-  getRolesWhoCanEdit,
-} from "@/services/user.service";
+  CreateCategoryRequest,
+  UpdateCategoryRequest,
+} from "@/requests/category-request.interfaces";
+import { decodeToken } from "@/services/auth.service";
+import {
+  getCategoryById,
+  createCategory,
+  updateCategory,
+} from "@/services/category.service";
+import { getRolesWhoCanEdit } from "@/services/user.service";
 import { Menu } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
@@ -64,10 +69,7 @@ const CreateCategoryPage = () => {
       setLoading(false);
     };
 
-    // Só executa após `userId` estar definido (inclusive se for null)
-    if (categoryId !== undefined) {
-      fetchData().catch(console.error);
-    }
+    fetchData().catch(console.error);
   }, [categoryId]);
 
   const handleChange = (
@@ -80,30 +82,28 @@ const CreateCategoryPage = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast.info("Cadastrando categoria...");
-    console.log(formData);
-    if (!categoryId) {
-      const createCategory: CreateCategoryRequest = {
-        name: formData.name,
-      };
-      const result = await postCategory(createCategory);
+    toast.info(
+      categoryId ? "Atualizando categoria..." : "Cadastrando categoria..."
+    );
 
-      if (result) {
-        toast.success("Categoria cadastrada com sucesso.");
+    try {
+      console.log(formData);
+      if (!categoryId) {
+        const request: CreateCategoryRequest = {
+          name: formData.name,
+        };
+        await createCategory(request);
       } else {
-        toast.error("Erro ao cadastrar categoria.");
+        const request: UpdateCategoryRequest = {
+          id: categoryId,
+          name: formData.name,
+        };
+        await updateCategory(Number(categoryId), request);
       }
-    } else {
-      const createCategory: CreateCategoryRequest = {
-        name: formData.name,
-      };
-      const result = await updateCategory(Number(categoryId), createCategory);
-
-      if (result) {
-        toast.success("Categoria atualizada com sucesso.");
-      } else {
-        toast.error("Erro ao atualizar categoria.");
-      }
+       toast.success("Categoria salva com sucesso!");
+      navigate("/categories");
+    } catch (error) {
+      toast.error("Erro ao salvar a categoria.");
     }
   };
 
@@ -164,7 +164,7 @@ const CreateCategoryPage = () => {
 
               <button
                 type="submit"
-                className="bg-blue-500 text-white rounded py-2 hover:bg-blue-600 transition"
+                className="bg-color-1 text-white rounded py-2 hover:bg-color-3 transition"
               >
                 Confirmar
               </button>

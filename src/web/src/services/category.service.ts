@@ -1,5 +1,5 @@
 import Category from "@/models/category.model";
-import { CreateCategoryRequest } from "@/requests/add-category-request";
+import { CreateCategoryRequest } from "@/requests/category-request.interfaces";
 
 const CATEGORY_API_URL =
   import.meta.env.VITE_PRODUCTS_API_URL + "/api/v1/categories";
@@ -37,7 +37,7 @@ export const getCategoryById: (id: string) => Promise<Category | null> = async (
   return data as Category;
 };
 
-export const postCategory: (request: CreateCategoryRequest) => Promise<Category | null> = async (request) => {
+export const createCategory: (request: CreateCategoryRequest) => Promise<Category | null> = async (request) => {
   const response = await fetch(`${CATEGORY_API_URL}`, {
     method: "POST",
     headers: {

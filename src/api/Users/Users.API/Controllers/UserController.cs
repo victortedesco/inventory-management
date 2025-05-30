@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using Users.API.Application.Requests;
 using Users.API.Application.ViewModels;
 using Users.API.Infrastructure.DTO;
@@ -134,7 +135,7 @@ public class UserController(IUserService userService, IRoleService roleService) 
     [ProducesResponseType(typeof(UserViewModel), StatusCodes.Status200OK)]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateUserRequest request)
     {
-        var userRole = User.Claims.FirstOrDefault(c => c.Type == "role")?.Value;
+        var userRole = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
 
         if (!canEditUser.Contains(userRole))
             return Forbid();
@@ -145,7 +146,6 @@ public class UserController(IUserService userService, IRoleService roleService) 
             UserName = request.UserName,
             DisplayName = request.DisplayName,
             Email = request.Email,
-            CPF = request.CPF,
             Password = request.Password,
             Role = request.Role
         };
@@ -165,7 +165,7 @@ public class UserController(IUserService userService, IRoleService roleService) 
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var userRole = User.Claims.FirstOrDefault(c => c.Type == "role")?.Value;
+        var userRole = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
 
         if (!canEditUser.Contains(userRole))
             return Forbid();

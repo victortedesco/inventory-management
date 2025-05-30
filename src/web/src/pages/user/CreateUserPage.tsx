@@ -1,10 +1,16 @@
 import { SideBar } from "@/components/SideBar";
 import User, { formatCPF } from "@/models/user.model";
+import {
+  CreateUserRequest,
+  UpdateUserRequest,
+} from "@/requests/user-request.interfaces";
 import { decodeToken } from "@/services/auth.service";
 import {
+  createUser,
   getRoles,
   getRolesWhoCanEdit,
   getUserById,
+  updateUser,
 } from "@/services/user.service";
 import { Menu } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -78,10 +84,7 @@ const CreateUserPage = () => {
       setLoading(false);
     };
 
-    // Só executa após `userId` estar definido (inclusive se for null)
-    if (userId !== undefined) {
-      fetchData().catch(console.error);
-    }
+    fetchData().catch(console.error);
   }, [userId]);
 
   const handleChange = (
@@ -97,25 +100,34 @@ const CreateUserPage = () => {
     setFormData({ ...formData, [name]: newValue });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (userId) {
-      // Atualizar usuário
-      const updatedUser: User = {
-        ...formData,
-        id: userId,
-      };
-      // Aqui você deve chamar a função de atualização do usuário
-      // Exemplo: await updateUser(updatedUser);
-      toast.success("Usuário atualizado com sucesso!");
-    } else {
-      // Criar novo usuário
-      const newUser: User = {
-        ...formData,
-      };
-      // Aqui você deve chamar a função de criação do usuário
-      // Exemplo: await createUser(newUser);
-      toast.success("Usuário criado com sucesso!");
+    try {
+      if (!userId) {
+        const request: CreateUserRequest = {
+          userName: formData.userName,
+          displayName: formData.displayName,
+          email: formData.email,
+          cpf: formData.cpf,
+          password: formData.password,
+          role: formData.role,
+        };
+        await createUser(request);
+      } else {
+        const request: UpdateUserRequest = {
+          id: formData.id,
+          userName: formData.userName,
+          displayName: formData.displayName,
+          email: formData.email,
+          password: formData.password || undefined,
+          role: formData.role,
+        };
+        await updateUser(userId, request);
+      }
+      toast.success("Usuário salvo com sucesso!");
+      navigate("/users");
+    } catch (error) {
+      toast.error("Erro ao salvar usuário. Tente novamente.");
     }
   };
 
@@ -234,7 +246,7 @@ const CreateUserPage = () => {
 
               <button
                 type="submit"
-                className="bg-blue-500 text-white rounded py-2 hover:bg-blue-600 transition"
+                className="bg-color-1 text-white rounded py-2 hover:bg-color-3 transition"
               >
                 Confirmar
               </button>

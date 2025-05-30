@@ -126,10 +126,10 @@ const UserPage = () => {
                 <button
                   type="button"
                   className="border p-1.5 rounded text-base"
-                  onClick={() => navigate("/user")}
+                  onClick={() => navigate("/user/edit")}
                   disabled={!canEdit}
                 >
-                  + Usuários
+                  + Usuário
                 </button>
                 <button
                   type="submit"
@@ -145,7 +145,6 @@ const UserPage = () => {
               <table className="min-w-full bg-white border text-lg md:text-base">
                 <thead className="bg-color-3 text-black">
                   <tr>
-                    <th className="w-10 px-4 py-3 border ">⭐</th>
                     <th className="px-4 py-3 border ">
                       Nome (Nome de Usuário)
                     </th>
@@ -165,9 +164,6 @@ const UserPage = () => {
                         index % 2 === 0 ? "bg-color-1" : "bg-color-2"
                       }`}
                     >
-                      <td className="border px-4 py-3">
-                        <input type="checkbox" className="w-4 h-4" />
-                      </td>
                       <td className="border  px-4 py-3">
                         {user.displayName} <span>({user.userName})</span>
                       </td>
@@ -176,9 +172,7 @@ const UserPage = () => {
                       <td className="border  px-4 py-3">{user.role}</td>
                       <td className={canEdit ? `border  px-4 py-3` : `hidden`}>
                         <button
-                          onClick={() =>
-                            navigate(`/user/${user.id}`)
-                          }
+                          onClick={() => navigate(`/user/edit/${user.id}`)}
                         >
                           <Pencil size={32} />
                         </button>
