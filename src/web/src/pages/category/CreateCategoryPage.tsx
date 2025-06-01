@@ -52,7 +52,7 @@ const CreateCategoryPage = () => {
       }
 
       if (categoryId) {
-        const category = await getCategoryById(Number(categoryId));
+        const category = await getCategoryById(categoryId);
         if (!category) {
           toast.error("Categoria não encontrada.");
           navigate("/categories");
@@ -98,7 +98,7 @@ const CreateCategoryPage = () => {
           id: categoryId,
           name: formData.name,
         };
-        await updateCategory(Number(categoryId), request);
+        await updateCategory(categoryId, request);
       }
        toast.success("Categoria salva com sucesso!");
       navigate("/categories");

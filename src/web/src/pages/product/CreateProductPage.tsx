@@ -5,12 +5,14 @@ import {
   CreateProductRequest,
   UpdateProductRequest,
 } from "@/requests/product-request.interfaces";
+import { decodeToken } from "@/services/auth.service";
 import { getAllCategories } from "@/services/category.service";
 import {
   getProductById,
   createProduct,
   updateProduct,
 } from "@/services/product.service";
+import { getRolesWhoCanEdit } from "@/services/user.service";
 import { Menu } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
@@ -50,6 +52,15 @@ const CreateProductPage = () => {
       const allCategories = await getAllCategories();
       setCategories(allCategories);
 
+      const decodedToken = decodeToken(token);
+      const canEditRoles = await getRolesWhoCanEdit();
+
+      if (!decodedToken || !canEditRoles.includes(decodedToken.role)) {
+        toast.error("Você não tem permissão para acessar esta página.");
+        navigate("/products");
+        return;
+      }
+
       if (productId) {
         const product = await getProductById(productId);
         if (!product) {
@@ -63,7 +74,7 @@ const CreateProductPage = () => {
           quantity: product.quantity.toString(),
           unitPrice: product.unitPrice.toString(),
           category: product.category?.id || "",
-          barcode: product.barcode || "",
+          barcode: product.barCode || "",
           image: product.image || "",
         });
       }

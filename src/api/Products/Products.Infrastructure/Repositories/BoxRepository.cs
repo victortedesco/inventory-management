@@ -12,7 +12,7 @@ public class BoxRepository(AppDbContext dbContext) : IBoxRepository
     public async Task<IEnumerable<Box>> GetAllAsync(int skip, int take, string name)
     {
         return await _boxes
-            .OrderByDescending(c => c.CreatedAt)
+            .OrderByDescending(c => c.Name)
             .Skip(skip)
             .Take(take)
             .Include(b => b.Products)

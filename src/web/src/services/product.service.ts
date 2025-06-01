@@ -23,7 +23,7 @@ export const getAllProducts: (
 };
 
 export const getAllProductsByCategoryId: (
-  categoryId: number,
+  categoryId: string,
   skip?: number,
   take?: number,
 ) => Promise<Product[]> = async (categoryId) => {

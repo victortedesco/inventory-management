@@ -12,8 +12,8 @@ using Products.Infrastructure.Data;
 namespace Products.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250523170014_ChangeSchema")]
-    partial class ChangeSchema
+    [Migration("20250601145702_FirstMigration")]
+    partial class FirstMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -72,13 +72,8 @@ namespace Products.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<Guid>("CreatedBy")
-                        .HasColumnType("uuid");
+                    b.Property<string>("Barcode")
+                        .HasColumnType("text");
 
                     b.Property<float>("Depth")
                         .HasColumnType("real");
@@ -97,14 +92,6 @@ namespace Products.Infrastructure.Migrations
                     b.Property<long>("Quantity")
                         .HasColumnType("bigint");
 
-                    b.Property<DateTime>("UpdatedAt")
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<Guid>("UpdatedBy")
-                        .HasColumnType("uuid");
-
                     b.Property<float>("Weight")
                         .HasColumnType("real");
 
@@ -121,32 +108,14 @@ namespace Products.Infrastructure.Migrations
 
             modelBuilder.Entity("Products.Domain.Models.Category", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<Guid>("CreatedBy")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<Guid>("UpdatedBy")
-                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -162,18 +131,12 @@ namespace Products.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid?>("BoxId")
-                        .HasColumnType("uuid");
+                    b.Property<string>("Barcode")
+                        .IsRequired()
+                        .HasMaxLength(13)
+                        .HasColumnType("character varying(13)");
 
-                    b.Property<int?>("CategoryId")
-                        .HasColumnType("integer");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<Guid>("CreatedBy")
+                    b.Property<Guid?>("CategoryId")
                         .HasColumnType("uuid");
 
                     b.Property<string>("Image")
@@ -195,17 +158,10 @@ namespace Products.Infrastructure.Migrations
                         .HasColumnType("decimal(18,2)")
                         .HasDefaultValue(0m);
 
-                    b.Property<DateTime>("UpdatedAt")
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
-
-                    b.Property<Guid>("UpdatedBy")
-                        .HasColumnType("uuid");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("BoxId");
+                    b.HasIndex("Barcode")
+                        .IsUnique();
 
                     b.HasIndex("CategoryId");
 
@@ -215,18 +171,53 @@ namespace Products.Infrastructure.Migrations
                     b.ToTable("Products", "products");
                 });
 
+            modelBuilder.Entity("Products.Domain.Models.ProductInBox", b =>
+                {
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("BoxId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("Quantity")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("ProductId", "BoxId");
+
+                    b.HasIndex("BoxId");
+
+                    b.ToTable("ProductsInBoxes", "products");
+                });
+
             modelBuilder.Entity("Products.Domain.Models.Product", b =>
                 {
-                    b.HasOne("Products.Domain.Models.Box", null)
-                        .WithMany("Products")
-                        .HasForeignKey("BoxId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
                     b.HasOne("Products.Domain.Models.Category", "Category")
                         .WithMany("Products")
                         .HasForeignKey("CategoryId");
 
                     b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("Products.Domain.Models.ProductInBox", b =>
+                {
+                    b.HasOne("Products.Domain.Models.Box", "Box")
+                        .WithMany("Products")
+                        .HasForeignKey("BoxId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Products.Domain.Models.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Box");
+
+                    b.Navigation("Product");
                 });
 
             modelBuilder.Entity("Products.Domain.Models.Box", b =>

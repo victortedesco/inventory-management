@@ -67,7 +67,7 @@ export const createUser: (user: CreateUserRequest) => Promise<User | null> = asy
     body: JSON.stringify(user),
   });
   if (response.status === 404 || response.status === 400) {
-    console.error("Error creating user:", response.statusText);
+    console.error("Error creating user:", response.json());
     return null;
   }
   const data = await response.json();

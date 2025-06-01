@@ -1,8 +1,17 @@
 import { SideBar } from "@/components/SideBar";
+import { Button } from "@/components/ui/button";
+import { DialogHeader, DialogFooter } from "@/components/ui/dialog";
 import Product, { formatBarCode, formatMoney } from "@/models/product.model";
 import { decodeToken } from "@/services/auth.service";
 import { deleteProduct, getAllProducts } from "@/services/product.service";
 import { getRolesWhoCanEdit } from "@/services/user.service";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import {
   AArrowDown,
   Banknote,
@@ -15,14 +24,18 @@ import {
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
+import { toast } from "sonner";
 
 type FilterOption = "name" | "category" | "quantity" | "price";
 
 const ListProductsPage = () => {
   const navigate = useNavigate();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
+  const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
   const [products, setProducts] = useState<Product[]>([]);
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
   const [canEdit, setCanEdit] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -31,6 +44,7 @@ const ListProductsPage = () => {
       setCanEdit(canEdit.includes(decodedToken!.role));
       const products = await getAllProducts();
       setProducts(products);
+      setLoading(false);
     };
     const token = localStorage.getItem("token");
     if (!token) navigate("/login");
@@ -57,6 +71,14 @@ const ListProductsPage = () => {
     quantity: <Hash size={24} />, // Quantidade
     price: <Banknote size={24} />, // Preço
   };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p className="text-xl">Carregando...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen">
@@ -86,21 +108,19 @@ const ListProductsPage = () => {
           <main className="w-full p-4">
             <div className="flex flex-col md:flex-row justify-between items-center mb-4">
               <div className="text-center md:text-left mb-2 md:mb-0">
-                <h2 className="text-2xl md:text-lg font-semibold">Produtos</h2>
-                <p className="text-base md:text-sm">
+                <h2 className="text-2xl md:text-xl font-semibold">Produtos</h2>
+                <p className="text-base">
                   {totalProducts} produtos cadastrados
                 </p>
-                <p className="text-base md:text-sm">
-                  Estoque total: {totalStock}
-                </p>
+                <p className="text-base">Estoque total: {totalStock}</p>
               </div>
 
               {/* Formulário superior */}
-              <form className="flex flex-nowrap sm:justify-end gap-2 w-full sm:max-w-md max-w-xs bg-white text-black border border-[--color-color-3] p-2 rounded-lg">
+              <form className="flex gap-2 w-full sm:max-w-md max-w-xs bg-white text-black border border-[--color-color-3] p-2 rounded-lg">
                 <input
                   type="text"
                   placeholder="Pesquisar por..."
-                  className="border p-1.5 rounded text-base w-full sm:w-40"
+                  className="border p-1.5 rounded text-base w-full sm:w-50"
                 />
                 <div className="relative inline-block text-left">
                   <button
@@ -150,12 +170,13 @@ const ListProductsPage = () => {
                   type="button"
                   className="border p-1.5 rounded text-base bg-color-2"
                   onClick={() => navigate("/product/edit")}
+                  disabled={!canEdit}
                 >
                   + Produto
                 </button>
                 <button
                   type="submit"
-                  className="border p-1.5 rounded text-base"
+                  className="border p-1.5 w-auto rounded text-base"
                 >
                   Enviar
                 </button>
@@ -173,7 +194,7 @@ const ListProductsPage = () => {
                     <th className="px-4 py-3">Estoque</th>
                     <th className="px-4 py-3">Preço Unitário</th>
                     <th className="px-4 py-3">Valor Total</th>
-                    <th className={canEdit ? `px-4 py-3` : `hidden`}>Ações</th>
+                    <th className="px-4 py-3">Ações</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -184,56 +205,111 @@ const ListProductsPage = () => {
                         index % 2 === 0 ? "bg-color-1" : "bg-color-2"
                       }`}
                     >
-                      <td className="justify-center border border-black  px-4 py-3">
-                        {product.image ? (
-                          <img
-                            src={product.image}
-                            alt={product.name}
-                            className="h-16 object-cover"
-                          />
-                        ) : (
-                          <img
-                            src="/no-image.png"
-                            alt="Imagem não disponível"
-                            className="h-16 object-cover"
-                          />
-                        )}
+                      <td className="border border-black px-4 py-3">
+                        <div className="flex justify-center items-center">
+                          {product.image ? (
+                            <img
+                              src={product.image}
+                              alt={product.name}
+                              className="h-12 object-cover rounded"
+                            />
+                          ) : (
+                            <img
+                              src="/no-image.png"
+                              alt="Imagem não disponível"
+                              className="h-12 object-cover rounded"
+                            />
+                          )}
+                        </div>
                       </td>
-                      <td className="border border-black  px-4 py-3">{`${product.name} (${formatBarCode(product.barcode)})`}</td>
+                      <td className="border border-black  px-4 py-3">{`${
+                        product.name
+                      } (${formatBarCode(product.barCode)})`}</td>
                       <td className="border border-black  px-4 py-3">
                         {product.category
                           ? product.category.name
                           : "Sem categoria"}
                       </td>
-                      <td className="border border-black  px-4 py-3">{product.quantity}</td>
+                      <td className="border border-black  px-4 py-3">
+                        {product.quantity}
+                      </td>
                       <td className="border border-black  px-4 py-3">
                         {formatMoney(product.unitPrice)}
                       </td>
                       <td className="border border-black  px-4 py-3">
                         {formatMoney(product.unitPrice * product.quantity)}
                       </td>
-                      <td
-                        className={
-                          canEdit ? `border border-black  gap-x-2 px-4 py-3` : `hidden`
-                        }
-                      >
+                      <td className={`border border-black  gap-x-2 px-4 py-3`}>
                         <button
-                          onClick={() =>
-                            navigate(`/product/${product.id}`)
-                          }
+                          onClick={() => navigate(`/product/${product.id}`)}
                         >
                           <Eye size={32} />
                         </button>
                         <button
+                          className={canEdit ? `` : `hidden`}
                           onClick={() =>
                             navigate(`/product/edit/${product.id}`)
                           }
                         >
                           <Pencil size={32} />
                         </button>
-                        <button onClick={async () => await deleteProduct(product.id)}>
-                          <Trash size={32} />
-                        </button>
+                        <Dialog
+                          open={isDialogOpen}
+                          onOpenChange={setIsDialogOpen}
+                        >
+                          <DialogTrigger asChild>
+                            <button
+                              className={canEdit ? `` : `hidden`}
+                              disabled={product.quantity !== 0}
+                              onClick={() => setProductToDelete(product)}
+                            >
+                              <Trash size={32} />
+                            </button>
+                          </DialogTrigger>
+
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Confirmar exclusão</DialogTitle>
+                              <DialogDescription>
+                                Tem certeza que deseja excluir o produto "
+                                {productToDelete?.name}"? Esta ação não pode ser
+                                desfeita.
+                              </DialogDescription>
+                            </DialogHeader>
+
+                            <DialogFooter>
+                              <Button
+                                variant="secondary"
+                                onClick={() => {
+                                  setProductToDelete(null);
+                                  setIsDialogOpen(false);
+                                }}
+                              >
+                                Cancelar
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                onClick={async () => {
+                                  await deleteProduct(
+                                    productToDelete?.id ?? ""
+                                  );
+                                  setProducts((prev) =>
+                                    prev.filter(
+                                      (c) => c.id !== productToDelete?.id
+                                    )
+                                  );
+                                  setProductToDelete(null);
+                                  setIsDialogOpen(false);
+                                  toast.success(
+                                    `Produto "${productToDelete?.name}" excluído com sucesso!`
+                                  );
+                                }}
+                              >
+                                Confirmar
+                              </Button>
+                            </DialogFooter>
+                          </DialogContent>
+                        </Dialog>
                       </td>
                     </tr>
                   ))}

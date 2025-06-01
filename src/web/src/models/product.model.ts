@@ -6,7 +6,7 @@ export default interface Product {
   image: string;
   unitPrice: number;
   quantity: number;
-  barcode: string;
+  barCode: string;
   category: Category;
 }
 
@@ -20,5 +20,5 @@ export const formatBarCode = (codigo: string): string => {
     throw new Error("O código de barras deve conter exatamente 13 dígitos numéricos.");
   }
 
-  return `${codigo.slice(0, 3)} ${codigo.slice(3, 6)} ${codigo.slice(6, 9)} ${codigo.slice(9)}`;
+  return `${codigo.slice(0, 1)}|${codigo.slice(1, 7)}|${codigo.slice(7, 13)}`;
 }

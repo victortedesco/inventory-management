@@ -1,11 +1,23 @@
+import AuditLogHistory from "@/components/AuditLogHistory";
 import { SideBar } from "@/components/SideBar";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { AuditLog } from "@/models/auditlog.model";
 import Category from "@/models/category.model";
 import Product, { formatBarCode, formatMoney } from "@/models/product.model";
+import { getAuditLogsByEntityId } from "@/services/audit-log.service";
 import { decodeToken } from "@/services/auth.service";
 import { getCategoryById } from "@/services/category.service";
 import {
   deleteProduct,
-  getAllProducts,
   getAllProductsByCategoryId,
 } from "@/services/product.service";
 import { getRolesWhoCanEdit } from "@/services/user.service";
@@ -18,11 +30,15 @@ const CategoryPage = () => {
   const navigate = useNavigate();
   const { id } = useParams();
 
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
+  const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [category, setCategory] = useState<Category>();
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [canEdit, setCanEdit] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     setCategoryId(id || null);
@@ -33,27 +49,33 @@ const CategoryPage = () => {
       const decodedToken = decodeToken(localStorage.getItem("token"));
       const canEdit = await getRolesWhoCanEdit();
       setCanEdit(canEdit.includes(decodedToken!.role));
-      if (!decodedToken || !canEdit.includes(decodedToken.role)) {
-        toast.error("Você não tem permissão para acessar esta página.");
-        navigate("/categories");
-        return;
-      }
       if (categoryId) {
-        const category = await getCategoryById(Number(categoryId));
-        const products = await getAllProductsByCategoryId(Number(categoryId));
+        const category = await getCategoryById(categoryId);
         if (!category) {
           toast.error("Categoria não encontrada");
           navigate("/categories");
           return;
         }
         setCategory(category);
+        const products = await getAllProductsByCategoryId(categoryId);
         setProducts(products);
+        const auditLogs = await getAuditLogsByEntityId(categoryId);
+        setAuditLogs(auditLogs);
+        setLoading(false);
       }
     };
     const token = localStorage.getItem("token");
     if (!token) navigate("/login");
     fetchData().catch(console.error);
   }, [categoryId]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p className="text-xl">Carregando...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen">
@@ -78,27 +100,27 @@ const CategoryPage = () => {
         </button>
         <div className="flex flex-col md:flex-row">
           <main className="w-full p-4">
-            <div className="flex flex-col">
+            <div className="flex flex-col text-xl mb-4">
+              <p className="font-bold">Categoria</p>
               <p>Nome: {category?.name}</p>
-              <p>Valor Total: {formatMoney(category?.value ?? 0)}</p>
+              <p>Valor total: {formatMoney(category?.value ?? 0)}</p>
               <p>Estoque disponível: {category?.totalStock}</p>
             </div>
             <div>
-              <main>
+              <div className="mb-4">
+                <p className="font-semibold text-xl mb-4">
+                  Produtos ({products.length})
+                </p>
                 <form className="overflow-x-auto rounded-lg">
-                  <table className="min-w-full bg-white border text-lg md:text-base">
-                    <thead className="bg-color-3 text-black">
+                  <table className="min-w-full bg-white text-lg md:text-base">
+                    <thead className="bg-color-3 border border-black text-black">
                       <tr>
-                        <th className="px-4 py-3 border ">Imagem</th>
-                        <th className="px-4 py-3 border ">
-                          Nome (Código de Barras)
-                        </th>
-                        <th className="px-4 py-3 border ">Estoque</th>
-                        <th className="px-4 py-3 border ">Preço Unitário</th>
-                        <th className="px-4 py-3 border ">Valor Total</th>
-                        <th className={canEdit ? `px-4 py-3 border` : `hidden`}>
-                          Ações
-                        </th>
+                        <th className="px-4 py-3 ">Imagem</th>
+                        <th className="px-4 py-3 ">Nome (Código de Barras)</th>
+                        <th className="px-4 py-3 ">Estoque</th>
+                        <th className="px-4 py-3 ">Preço Unitário</th>
+                        <th className="px-4 py-3">Valor Total</th>
+                        <th className="px-4 py-3">Ações</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -109,64 +131,114 @@ const CategoryPage = () => {
                             index % 2 === 0 ? "bg-color-1" : "bg-color-2"
                           }`}
                         >
-                          <td className="flex justify-center border px-4 py-3">
-                            {product.image ? (
-                              <img
-                                src={product.image}
-                                alt={product.name}
-                                className="h-16 object-cover rounded"
-                              />
-                            ) : (
-                              <img
-                                src="no-image.png"
-                                alt="Imagem não disponível"
-                                className="h-16 object-cover rounded"
-                              />
-                            )}
+                          <td className="border border-black px-4 py-3">
+                            <div className="flex justify-center items-center">
+                              {product.image ? (
+                                <img
+                                  src={product.image}
+                                  alt={product.name}
+                                  className="h-16 object-cover rounded"
+                                />
+                              ) : (
+                                <img
+                                  src="no-image.png"
+                                  alt="Imagem não disponível"
+                                  className="h-16 object-cover rounded"
+                                />
+                              )}
+                            </div>
                           </td>
-                          <td className="border  px-4 py-3">{`${
+                          <td className="border border-black px-4 py-3">{`${
                             product.name
-                          } (${formatBarCode(product.barcode)})`}</td>
-                          <td className="border  px-4 py-3">
+                          } (${formatBarCode(product.barCode)})`}</td>
+                          <td className="border border-black px-4 py-3">
                             {product.quantity}
                           </td>
-                          <td className="border  px-4 py-3">
+                          <td className="border border-black px-4 py-3">
                             {formatMoney(product.unitPrice)}
                           </td>
-                          <td className="border  px-4 py-3">
+                          <td className="border border-black px-4 py-3">
                             {formatMoney(product.unitPrice * product.quantity)}
                           </td>
-                          <td
-                            className={
-                              canEdit ? `border gap-x-2 px-4 py-3` : `hidden`
-                            }
-                          >
+                          <td className="border border-black gap-x-2 px-4 py-3">
                             <button
                               onClick={() => navigate(`/product/${product.id}`)}
                             >
                               <Eye size={32} />
                             </button>
                             <button
+                              className={canEdit ? `` : `hidden`}
                               onClick={() =>
                                 navigate(`/product/edit/${product.id}`)
                               }
                             >
                               <Pencil size={32} />
                             </button>
-                            <button
-                              onClick={async () =>
-                                await deleteProduct(product.id)
-                              }
+                            <Dialog
+                              open={isDialogOpen}
+                              onOpenChange={setIsDialogOpen}
                             >
-                              <Trash size={32} />
-                            </button>
+                              <DialogTrigger asChild>
+                                <button
+                                  className={canEdit ? `` : `hidden`}
+                                  disabled={product.quantity !== 0}
+                                  onClick={() => setProductToDelete(product)}
+                                >
+                                  <Trash size={32} />
+                                </button>
+                              </DialogTrigger>
+
+                              <DialogContent>
+                                <DialogHeader>
+                                  <DialogTitle>Confirmar exclusão</DialogTitle>
+                                  <DialogDescription>
+                                    Tem certeza que deseja excluir o produto "
+                                    {productToDelete?.name}"? Esta ação não pode
+                                    ser desfeita.
+                                  </DialogDescription>
+                                </DialogHeader>
+
+                                <DialogFooter>
+                                  <Button
+                                    variant="secondary"
+                                    onClick={() => {
+                                      setProductToDelete(null);
+                                      setIsDialogOpen(false);
+                                    }}
+                                  >
+                                    Cancelar
+                                  </Button>
+                                  <Button
+                                    variant="destructive"
+                                    onClick={async () => {
+                                      await deleteProduct(
+                                        productToDelete?.id || ""
+                                      );
+                                      setProducts((prev) =>
+                                        prev.filter(
+                                          (c) => c.id !== productToDelete?.id
+                                        )
+                                      );
+                                      setProductToDelete(null);
+                                      setIsDialogOpen(false);
+                                    }}
+                                  >
+                                    Confirmar
+                                  </Button>
+                                </DialogFooter>
+                              </DialogContent>
+                            </Dialog>
                           </td>
                         </tr>
                       ))}
                     </tbody>
                   </table>
                 </form>
-              </main>
+              </div>
+              <AuditLogHistory
+                isSpecific={true}
+                logs={auditLogs}
+              ></AuditLogHistory>
             </div>
           </main>
         </div>

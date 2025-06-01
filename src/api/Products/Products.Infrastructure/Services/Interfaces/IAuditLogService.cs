@@ -7,6 +7,7 @@ public interface IAuditLogService
 {
     Task<IEnumerable<AuditLogDTO>> GetByEntityNameAsync(int skip, int take, string entityName);
     Task<IEnumerable<AuditLogDTO>> GetByEntityIdAsync(int skip, int take, string entityId);
+    Task<IEnumerable<AuditLogDTO>> GetByEntityTypeAsync(int skip, int take, string entityType);
     Task<IEnumerable<AuditLogDTO>> GetByUserIdAsync(int skip, int take, string userId);
     Task<IEnumerable<AuditLogDTO>> GetByActionTypeAsync(int skip, int take, AuditActionType actionType);
 }

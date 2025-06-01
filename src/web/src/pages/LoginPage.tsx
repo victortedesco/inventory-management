@@ -42,17 +42,17 @@ const LoginPage = () => {
               type="text"
               value={identifier}
               onChange={(e) => {
-                let value = e.target.value;
-            
+                let value = e.target.value.trim();
+
                 // Se for só números com até 11 dígitos, assume que é CPF e formata
                 const numericOnly = value.replace(/\D/g, "");
                 if (numericOnly.length <= 11 && /^\d+$/.test(numericOnly)) {
                   value = formatCPF(numericOnly);
                   setIdentifier(value.replace(/\D/g, ""));
                   return;
-                } 
+                }
 
-                setIdentifier(value);             
+                setIdentifier(value);
               }}
               name="name"
               required
@@ -79,7 +79,7 @@ const LoginPage = () => {
           <div className="flex flex-col items-center p-2">
             <button
               type="submit"
-              className="cursor-pointer w-40 p-2 font-semibold text-white bg-green-500 rounded-lg hover:bg-green-600 shadow-sm shadow-black/50
+              className="cursor-pointer w-40 p-2 font-semibold text-white bg-color-2 rounded-lg hover:bg-color-3 shadow-sm shadow-black/50
                     duration-500 ease-in-out hover:w-42 hover:h-10"
               onClick={(e) => handleSubmit(e)}
             >

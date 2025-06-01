@@ -26,20 +26,6 @@ internal class ProductEntityConfiguration : IEntityTypeConfiguration<Product>
         builder.HasIndex(b => b.Barcode)
             .IsUnique();
 
-        builder.Property(b => b.CreatedBy)
-            .IsRequired();
-
-        builder.Property(b => b.UpdatedBy)
-            .IsRequired();
-
-        builder.Property(b => b.CreatedAt)
-             .HasDefaultValueSql("CURRENT_TIMESTAMP")
-             .ValueGeneratedOnAdd();
-
-        builder.Property(b => b.UpdatedAt)
-            .HasDefaultValueSql("CURRENT_TIMESTAMP")
-            .ValueGeneratedOnAddOrUpdate();
-
         builder.Property(p => p.Image)
             .IsRequired();
 

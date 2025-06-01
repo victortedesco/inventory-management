@@ -24,6 +24,11 @@ public class AuditLogRepository(AppDbContext context) : IAuditLogRepository
         return await _context.AuditLogs.OrderByDescending(c => c.Timestamp).Where(u => u.EntityId == entityId).Skip(skip).Take(take).ToListAsync();
     }
 
+    public async Task<IEnumerable<AuditLog>> GetByEntityTypeAsync(int skip, int take, string entityType)
+    {
+        return await _context.AuditLogs.OrderByDescending(c => c.Timestamp).Where(u => u.EntityType.ToLower().Contains(entityType.ToLower())).Skip(skip).Take(take).ToListAsync();
+    }
+
     public async Task<IEnumerable<AuditLog>> GetByUserIdAsync(int skip, int take, string userId)
     {
         return await _context.AuditLogs.OrderByDescending(c => c.Timestamp).Where(u => u.UserId == userId).Skip(skip).Take(take).ToListAsync();

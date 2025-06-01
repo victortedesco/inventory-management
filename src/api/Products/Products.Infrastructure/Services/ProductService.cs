@@ -23,13 +23,13 @@ public class ProductService(IProductRepository productRepository, ICategoryRepos
         return product?.ToDTO();
     }
 
-    public async Task<IEnumerable<ProductDTO>> GetByCategoryIdAsync(int categoryId, int skip, int take, string name)
+    public async Task<IEnumerable<ProductDTO>> GetByCategoryIdAsync(Guid categoryId, int skip, int take, string name)
     {
         var products = await _productRepository.GetByCategoryIdAsync(categoryId, skip, take, name);
         return products.Select(p => p.ToDTO());
     }
 
-    public async Task<Result<ProductDTO>> CreateAsync(Guid createdBy, ProductDTO entity)
+    public async Task<Result<ProductDTO>> CreateAsync(ProductDTO entity)
     {
         var errors = new List<string>();
 
@@ -60,14 +60,12 @@ public class ProductService(IProductRepository productRepository, ICategoryRepos
             Quantity = entity.Quantity,
             Barcode = entity.Barcode,
             Category = category,
-            CreatedBy = createdBy,
-            UpdatedBy = createdBy
         };
         var createdProduct = await _productRepository.CreateAsync(product);
         return createdProduct.ToDTO();
     }
 
-    public async Task<Result<ProductDTO>> UpdateAsync(Guid updatedBy, ProductDTO entity)
+    public async Task<Result<ProductDTO>> UpdateAsync(ProductDTO entity)
     {
         var errors = new List<string>();
 
@@ -100,7 +98,6 @@ public class ProductService(IProductRepository productRepository, ICategoryRepos
         existingProduct.Barcode = entity.Barcode;
         existingProduct.Category = category;
         existingProduct.UnitPrice = entity.UnitPrice;
-        existingProduct.UpdatedBy = updatedBy;
 
         var updatedProduct = await _productRepository.UpdateAsync(existingProduct);
         return updatedProduct.ToDTO();
@@ -108,6 +105,22 @@ public class ProductService(IProductRepository productRepository, ICategoryRepos
 
     public async Task<bool> DeleteAsync(Guid id)
     {
+        var product = await _productRepository.GetByIdAsync(id);
+        if (product.Quantity != 0) return false;
         return await _productRepository.DeleteAsync(id);
+    }
+
+    public async Task<ProductDTO> UpdateQuantityAsync(Guid guid, int quantity)
+    {
+        var product = await _productRepository.GetByIdAsync(guid);
+        if (product is null) return null;
+
+        int tempQuantity = (int)product.Quantity + quantity;
+        if (tempQuantity < 0) return null;
+
+        product.Quantity = (uint)tempQuantity;
+
+        var updatedProduct = await _productRepository.UpdateAsync(product);
+        return updatedProduct.ToDTO();
     }
 }

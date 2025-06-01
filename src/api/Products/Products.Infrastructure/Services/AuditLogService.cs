@@ -27,6 +27,12 @@ public class AuditLogService(IAuditLogRepository auditLogRepository) : IAuditLog
         return auditLogs.ToDTO();
     }
 
+    public async Task<IEnumerable<AuditLogDTO>> GetByEntityTypeAsync(int skip, int take, string entityType)
+    {
+        var auditLogs = await _auditLogRepository.GetByEntityTypeAsync(skip, take, entityType);
+        return auditLogs.ToDTO();
+    }
+
     public async Task<IEnumerable<AuditLogDTO>> GetByEntityNameAsync(int skip, int take, string entityName)
     {
         var auditLogs = await _auditLogRepository.GetByEntityNameAsync(skip, take, entityName);

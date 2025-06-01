@@ -1,14 +1,14 @@
-import Category from "@/models/category.model";
-import { CreateCategoryRequest } from "@/requests/category-request.interfaces";
+import Box from "@/models/box.model";
+import { CreateProductRequest } from "@/requests/product-request.interfaces";
 
-const CATEGORY_API_URL =
-  import.meta.env.VITE_PRODUCTS_API_URL + "/api/v1/categories";
+const BOX_API_URL =
+  import.meta.env.VITE_PRODUCTS_API_URL + "/api/v1/boxes";
 
-export const getAllCategories: (
+export const getAllBoxes: (
   skip?: number,
   take?: number
-) => Promise<Category[]> = async () => {
-  const response = await fetch(`${CATEGORY_API_URL}`, {
+) => Promise<Box[]> = async () => {
+  const response = await fetch(`${BOX_API_URL}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -19,11 +19,11 @@ export const getAllCategories: (
     return [];
   }
   const data = await response.json();
-  return data as Category[];
+  return data as Box[];
 };
 
-export const getCategoryById: (id: string) => Promise<Category | null> = async (id) => {
-  const response = await fetch(`${CATEGORY_API_URL}/${id}`, {
+export const getBoxById: (id: string) => Promise<Box | null> = async (id) => {
+  const response = await fetch(`${BOX_API_URL}/${id}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",
@@ -34,11 +34,11 @@ export const getCategoryById: (id: string) => Promise<Category | null> = async (
     return null;
   }
   const data = await response.json();
-  return data as Category;
+  return data as Box;
 };
 
-export const createCategory: (request: CreateCategoryRequest) => Promise<Category | null> = async (request) => {
-  const response = await fetch(`${CATEGORY_API_URL}`, {
+export const createBox: (request: CreateProductRequest) => Promise<Box | null> = async (request) => {
+  const response = await fetch(`${BOX_API_URL}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -47,15 +47,15 @@ export const createCategory: (request: CreateCategoryRequest) => Promise<Categor
     body: JSON.stringify(request)
   });
   if (response.status === 404 || response.status === 400) {
-    console.error("Error creating category:", response.statusText);
+    console.error("Error creating box:", response.text());
     return null;
   }
   const data = await response.json();
-  return data as Category;
+  return data as Box;
 }
 
-export const updateCategory: (id: string, request: CreateCategoryRequest) => Promise<Category | null> = async (id, request) => {
-  const response = await fetch(`${CATEGORY_API_URL}/${id}`, {
+export const updateBox: (id: string, request: CreateProductRequest) => Promise<Box | null> = async (id, request) => {
+  const response = await fetch(`${BOX_API_URL}/${id}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -64,15 +64,15 @@ export const updateCategory: (id: string, request: CreateCategoryRequest) => Pro
     body: JSON.stringify(request)
   });
   if (response.status === 404 || response.status === 400) {
-    console.error("Error updating category:", response.statusText);
+    console.error("Error updating box:", response.text());
     return null;
   }
   const data = await response.json();
-  return data as Category;
-} 
+  return data as Box;
+}
 
-export const deleteCategory: (id: string) => Promise<boolean> = async(id) => {
-  const response = await fetch(`${CATEGORY_API_URL}/${id}`, {
+export const deleteBox: (id: string) => Promise<boolean> = async(id) => {
+  const response = await fetch(`${BOX_API_URL}/${id}`, {
     method: "DELETE",
     headers: {
       "Content-Type": "application/json",
@@ -80,7 +80,7 @@ export const deleteCategory: (id: string) => Promise<boolean> = async(id) => {
     },
   });
   if (response.status === 404 || response.status === 400) {
-    console.error("Error deleting category:", response.statusText);
+    console.error("Error deleting box:", response.statusText);
     return false;
   }
   return true;

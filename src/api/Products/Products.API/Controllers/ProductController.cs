@@ -30,11 +30,11 @@ public class ProductController(IProductService productService) : ControllerBase
         return Ok(products.ToViewModel());
     }
 
-    [HttpGet("category/{categoryId:int}")]
+    [HttpGet("category/{categoryId:guid}")]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(IEnumerable<ProductViewModel>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetByCategoryId(int categoryId, [FromQuery] Pagination pagination)
+    public async Task<IActionResult> GetByCategoryId(Guid categoryId, [FromQuery] Pagination pagination)
     {
         var products = await _productService.GetByCategoryIdAsync(categoryId, pagination.Skip, pagination.Take, pagination.Name);
 
@@ -69,12 +69,12 @@ public class ProductController(IProductService productService) : ControllerBase
         if (userId is null)
             return Unauthorized();
 
-        var result = await _productService.CreateAsync(Guid.Parse(userId), new ProductDTO
+        var result = await _productService.CreateAsync(new ProductDTO
         {
             Name = product.Name,
             Image = product.Image,
             Barcode = product.Barcode,
-            Category = new CategoryDTO { Id = int.Parse(product.CategoryId) },
+            Category = new CategoryDTO { Id = Guid.Parse(product.CategoryId) },
             UnitPrice = product.UnitPrice,
             Quantity = product.Quantity,
         });
@@ -96,13 +96,13 @@ public class ProductController(IProductService productService) : ControllerBase
         if (userId is null)
             return Unauthorized();
 
-        var result = await _productService.UpdateAsync(Guid.Parse(userId), new ProductDTO
+        var result = await _productService.UpdateAsync(new ProductDTO
         {
             Id = id,
             Name = product.Name,
             Image = product.Image,
             Barcode = product.Barcode,
-            Category = new CategoryDTO { Id = int.Parse(product.CategoryId) },
+            Category = new CategoryDTO { Id = Guid.Parse(product.CategoryId) },
             UnitPrice = product.UnitPrice,
             Quantity = product.Quantity,
         });
@@ -125,5 +125,20 @@ public class ProductController(IProductService productService) : ControllerBase
             return NotFound();
 
         return NoContent();
+    }
+
+    [HttpPatch("{id:guid}/quantity")]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> UpdateQuantity(Guid id, [FromBody] int request)
+    {
+        var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value;
+        if (userId is null)
+            return Unauthorized();
+        var result = await _productService.UpdateQuantityAsync(id, request);
+        if (result == null)
+            return BadRequest();
+        return Ok(result.ToViewModel());
     }
 }

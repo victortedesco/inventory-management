@@ -21,8 +21,10 @@ public class AuditLogController(IAuditLogService auditLogService) : ControllerBa
     public async Task<IActionResult> GetByEntityName([FromQuery] Pagination pagination)
     {
         var auditLogs = await _auditLogService.GetByEntityNameAsync(pagination.Skip, pagination.Take, pagination.Name);
+
         if (!auditLogs.Any())
             return NoContent();
+
         return Ok(auditLogs.ToViewModel());
     }
 
@@ -33,6 +35,34 @@ public class AuditLogController(IAuditLogService auditLogService) : ControllerBa
     public async Task<IActionResult> GetByEntityId(string entityId, [FromQuery] Pagination pagination)
     {
         var auditLogs = await _auditLogService.GetByEntityIdAsync(pagination.Skip, pagination.Take, entityId);
+
+        if (!auditLogs.Any())
+            return NoContent();
+
+        return Ok(auditLogs.ToViewModel());
+    }
+
+    [HttpGet("entity/type/{entityType}")]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(IEnumerable<AuditLogViewModel>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetByEntityType(string entityType, [FromQuery] Pagination pagination)
+    {
+        var auditLogs = await _auditLogService.GetByEntityTypeAsync(pagination.Skip, pagination.Take, entityType);
+
+        if (!auditLogs.Any())
+            return NoContent();
+
+        return Ok(auditLogs.ToViewModel());
+    }
+
+    [HttpGet("entity/name/{entityName}")]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(IEnumerable<AuditLogViewModel>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetByEntityName(string entityName, [FromQuery] Pagination pagination)
+    {
+        var auditLogs = await _auditLogService.GetByEntityNameAsync(pagination.Skip, pagination.Take, entityName);
 
         if (!auditLogs.Any())
             return NoContent();

@@ -12,7 +12,7 @@ public class ProductRepository(AppDbContext dbContext) : IProductRepository
     public async Task<IEnumerable<Product>> GetAllAsync(int skip, int take, string name)
     {
         return await _products
-            .OrderByDescending(p => p.CreatedAt)
+            .OrderByDescending(p => p.Name)
             .Skip(skip)
             .Take(take)
             .Where(p => string.IsNullOrEmpty(name) || p.Name.ToLower().Contains(name.ToLower()))
@@ -25,10 +25,10 @@ public class ProductRepository(AppDbContext dbContext) : IProductRepository
         return await _products.Include(p => p.Category).FirstOrDefaultAsync(p => p.Id == id);
     }
 
-    public async Task<IEnumerable<Product>> GetByCategoryIdAsync(int categoryId, int skip, int take, string name)
+    public async Task<IEnumerable<Product>> GetByCategoryIdAsync(Guid categoryId, int skip, int take, string name)
     {
         return await _products
-            .OrderByDescending(p => p.CreatedAt)
+            .OrderByDescending(p => p.Name)
             .Skip(skip)
             .Take(take)
             .Include(p => p.Category)

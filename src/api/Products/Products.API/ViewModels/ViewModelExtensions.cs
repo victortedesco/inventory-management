@@ -29,7 +29,7 @@ public static class ViewModelExtensions
             Name = product.Name,
             Image = product.Image,
             UnitPrice = product.UnitPrice,
-            Barcode = product.Barcode,
+            BarCode = product.Barcode,
             Quantity = product.Quantity,
             Category = product.Category?.ToViewModel(),
         };
@@ -45,6 +45,7 @@ public static class ViewModelExtensions
         return new BoxViewModel
         {
             Id = box.Id,
+            BarCode = box.Barcode,
             Name = box.Name,
             Discount = box.Discount,
             UnitPrice = box.UnitPrice,
@@ -53,7 +54,8 @@ public static class ViewModelExtensions
             Depth = box.Depth,
             Height = box.Height,
             Width = box.Width,
-            Products = box.Products.ToViewModel(),
+            ProductCount = box.ProductCount,
+            UniqueProductCount = box.UniqueProductCount,
         };
     }
 

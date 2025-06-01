@@ -45,15 +45,16 @@ public static class DTOExtensions
         return new BoxDTO
         {
             Id = box.Id,
+            Barcode = box.Barcode,
             Name = box.Name,
             Discount = box.Discount,
-            UnitPrice = box.Products.Sum(p => p.UnitPrice),
+            UnitPrice = box.Products.Select(b => b.Product).Sum(p => p.UnitPrice),
             Quantity = box.Quantity,
             Weight = box.Weight,
             Depth = box.Depth,
             Height = box.Height,
             Width = box.Width,
-            Products = box.Products.ToDTO(),
+            ProductCount = (int)box.Products.Sum(p => p.Quantity),
         };
     }
 

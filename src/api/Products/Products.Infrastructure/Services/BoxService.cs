@@ -23,7 +23,7 @@ public class BoxService(IProductRepository productRepository, IBoxRepository box
         return box?.ToDTO();
     }
 
-    public async Task<Result<BoxDTO>> CreateAsync(Guid createdBy, BoxDTO entity)
+    public async Task<Result<BoxDTO>> CreateAsync(BoxDTO entity)
     {
         var errors = new List<string>();
 
@@ -63,15 +63,13 @@ public class BoxService(IProductRepository productRepository, IBoxRepository box
             Depth = entity.Depth,
             Height = entity.Height,
             Width = entity.Width,
-            CreatedBy = createdBy,
-            UpdatedBy = createdBy
         };
 
         var result = await _boxRepository.CreateAsync(newEntity);
         return Result.Ok(result.ToDTO());
     }
 
-    public async Task<Result<BoxDTO>> UpdateAsync(Guid updatedBy, BoxDTO entity)
+    public async Task<Result<BoxDTO>> UpdateAsync(BoxDTO entity)
     {
         var errors = new List<string>();
 
@@ -94,7 +92,7 @@ public class BoxService(IProductRepository productRepository, IBoxRepository box
         if (entity.Discount < 0)
             errors.Add("Box discount must be greater than or equal to zero");
         if (entity.Discount > 80)
-            errors.Add("Box discount must be at most 80");
+            errors.Add("Box discount must be less or equal to 80");
         if (errors.Count != 0)
             return Result.Fail(errors);
 
@@ -110,7 +108,6 @@ public class BoxService(IProductRepository productRepository, IBoxRepository box
         existingBox.Height = entity.Height;
         existingBox.Width = entity.Width;
         existingBox.Discount = entity.Discount;
-        existingBox.UpdatedBy = updatedBy;
 
         var result = await _boxRepository.UpdateAsync(existingBox);
         if (result is null)
@@ -124,7 +121,7 @@ public class BoxService(IProductRepository productRepository, IBoxRepository box
         return await _boxRepository.DeleteAsync(id);
     }
 
-    public async Task<Result<BoxDTO>> AddProduct(Guid updatedBy, Guid boxId, Guid productId)
+    public async Task<Result<BoxDTO>> AddProduct(Guid boxId, Guid productId)
     {
         var errors = new List<string>();
 
@@ -141,8 +138,7 @@ public class BoxService(IProductRepository productRepository, IBoxRepository box
         if (errors.Count > 0)
             return Result.Fail(errors);
 
-        box.UpdatedBy = updatedBy;
-        box.Products.Add(product);
+        // box.Products.Add(product);
 
         var result = await _boxRepository.UpdateAsync(box);
 
@@ -152,7 +148,7 @@ public class BoxService(IProductRepository productRepository, IBoxRepository box
         return Result.Ok(result.ToDTO());
     }
 
-    public async Task<Result<BoxDTO>> RemoveProduct(Guid updatedBy, Guid boxId, Guid productId)
+    public async Task<Result<BoxDTO>> RemoveProduct(Guid boxId, Guid productId)
     {
         var errors = new List<string>();
 
@@ -169,8 +165,7 @@ public class BoxService(IProductRepository productRepository, IBoxRepository box
         if (errors.Count > 0)
             return Result.Fail(errors);
 
-        box.UpdatedBy = updatedBy;
-        box.Products.Remove(product);
+        // box.Products.Remove(product);
 
         var result = await _boxRepository.UpdateAsync(box);
 

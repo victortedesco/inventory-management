@@ -55,7 +55,7 @@ public class BoxController(IBoxService boxService) : ControllerBase
         if (userId is null)
             return Unauthorized();
 
-        var result = await _boxService.CreateAsync(Guid.Parse(userId), new BoxDTO
+        var result = await _boxService.CreateAsync(new BoxDTO
         {
             Name = box.Name,
             Discount = box.Discount,
@@ -84,7 +84,7 @@ public class BoxController(IBoxService boxService) : ControllerBase
         if (userId is null)
             return Unauthorized();
 
-        var result = await _boxService.UpdateAsync(Guid.Parse(userId), new BoxDTO
+        var result = await _boxService.UpdateAsync(new BoxDTO
         {
             Id = id,
             Name = box.Name,
@@ -114,7 +114,7 @@ public class BoxController(IBoxService boxService) : ControllerBase
         if (userId is null)
             return Unauthorized();
 
-        var result = await _boxService.AddProduct(Guid.Parse(userId), boxId, productId);
+        var result = await _boxService.AddProduct(boxId, productId);
 
         if (result.IsFailed)
             return BadRequest(result.Errors.Select(e => e.Message));
@@ -133,7 +133,7 @@ public class BoxController(IBoxService boxService) : ControllerBase
         if (userId is null)
             return Unauthorized();
 
-        var result = await _boxService.RemoveProduct(Guid.Parse(userId), boxId, productId);
+        var result = await _boxService.RemoveProduct(boxId, productId);
 
         if (result.IsFailed)
             return BadRequest(result.Errors.Select(e => e.Message));

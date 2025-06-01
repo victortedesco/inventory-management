@@ -12,7 +12,7 @@ public class CategoryRepository(AppDbContext dbContext) : ICategoryRepository
     public async Task<IEnumerable<Category>> GetAllAsync(int skip, int take, string name)
     {
         return await _categories
-            .OrderByDescending(c => c.CreatedAt)
+            .OrderByDescending(c => c.Name)
             .Skip(skip)
             .Take(take)
             .Include(c => c.Products)
@@ -20,7 +20,7 @@ public class CategoryRepository(AppDbContext dbContext) : ICategoryRepository
             .ToListAsync();
     }
 
-    public async Task<Category> GetByIdAsync(int id)
+    public async Task<Category> GetByIdAsync(Guid id)
     {
         return await _categories.Include(c => c.Products).FirstOrDefaultAsync(c => c.Id == id);
     }
@@ -45,7 +45,7 @@ public class CategoryRepository(AppDbContext dbContext) : ICategoryRepository
         return result.Entity;
     }
 
-    public async Task<bool> DeleteAsync(int id)
+    public async Task<bool> DeleteAsync(Guid id)
     {
         var entity = await GetByIdAsync(id);
         if (entity is null)

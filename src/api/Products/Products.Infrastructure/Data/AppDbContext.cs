@@ -58,7 +58,7 @@ public class AppDbContext : DbContext
             {
                 foreach (var prop in entry.Properties)
                 {
-                    var allowedProps = new[] { "CreatedBy" };
+                    var allowedProps = new[] { "Name" };
                     var newValue = prop.CurrentValue;
 
                     if (!allowedProps.Contains(prop.Metadata.Name))
@@ -84,9 +84,19 @@ public class AppDbContext : DbContext
             {
                 foreach (var prop in entry.Properties)
                 {
+                    var allowedProps = new[] { "Name" };
+                    var newValue = prop.CurrentValue;
+
+                    if (!allowedProps.Contains(prop.Metadata.Name))
+                        continue;
+
+                    if (newValue == null || IsDefaultValue(newValue))
+                        continue;
+
                     auditLogs.Add(new AuditLog
                     {
                         ActionType = AuditActionType.Delete,
+                        EntityType = entityType,
                         EntityName = entityName,
                         EntityId = entityId,
                         Property = prop.Metadata.Name,
@@ -105,11 +115,12 @@ public class AppDbContext : DbContext
                         auditLogs.Add(new AuditLog
                         {
                             ActionType = AuditActionType.Update,
+                            EntityType = entityType,
                             EntityName = entityName,
                             EntityId = entityId,
                             Property = prop.Metadata.Name,
-                            OldValue = prop.OriginalValue?.ToString(),
-                            NewValue = prop.CurrentValue?.ToString(),
+                            OldValue = prop.Metadata.Name != "Image" ? prop.OriginalValue?.ToString() : null,
+                            NewValue = prop.Metadata.Name != "Image" ? prop.CurrentValue?.ToString() : null,
                             UserId = _currentUserId
                         });
                     }

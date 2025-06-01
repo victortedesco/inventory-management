@@ -3,6 +3,7 @@
 public class BoxViewModel
 {
     public Guid Id { get; set; }
+    public string BarCode { get; set; }
     public string Name { get; set; }
     public decimal Discount { get; set; }
     public decimal UnitPrice { get; set; }
@@ -11,5 +12,6 @@ public class BoxViewModel
     public float Depth { get; set; }
     public float Height { get; set; }
     public float Width { get; set; }
-    public IEnumerable<ProductViewModel> Products { get; set; } = [];
+    public int ProductCount { get; set; }
+    public int UniqueProductCount { get; set; }
 }

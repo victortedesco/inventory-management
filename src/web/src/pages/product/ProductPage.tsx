@@ -1,11 +1,12 @@
+import AuditLogHistory from "@/components/AuditLogHistory";
 import { SideBar } from "@/components/SideBar";
-import Category from "@/models/category.model";
-import Product, { formatMoney } from "@/models/product.model";
+import { AuditLog } from "@/models/auditlog.model";
+import Product, { formatBarCode, formatMoney } from "@/models/product.model";
+import { getAuditLogsByEntityId } from "@/services/audit-log.service";
 import { decodeToken } from "@/services/auth.service";
-import { getCategoryById } from "@/services/category.service";
-import { getAllProducts, getProductById } from "@/services/product.service";
+import { getProductById } from "@/services/product.service";
 import { getRolesWhoCanEdit } from "@/services/user.service";
-import { Menu } from "lucide-react";
+import { Eye, Menu } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
@@ -15,9 +16,13 @@ const ProductPage = () => {
   const { id } = useParams();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
   const [productId, setProductId] = useState<string | null>(null);
   const [product, setProduct] = useState<Product>();
+  const [auditlogs, setAuditLogs] = useState<AuditLog[]>([]);
+
   const [canEdit, setCanEdit] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     if (!id) {
@@ -33,11 +38,6 @@ const ProductPage = () => {
       const decodedToken = decodeToken(localStorage.getItem("token"));
       const canEdit = await getRolesWhoCanEdit();
       setCanEdit(canEdit.includes(decodedToken!.role));
-      if (!decodedToken || !canEdit.includes(decodedToken.role)) {
-        toast.error("Você não tem permissão para acessar esta página.");
-        navigate("/categories");
-        return;
-      }
       if (productId) {
         const product = await getProductById(productId);
         if (!product) {
@@ -46,12 +46,23 @@ const ProductPage = () => {
           return;
         }
         setProduct(product);
+        const auditLogs = await getAuditLogsByEntityId(productId);
+        setAuditLogs(auditLogs);
+        setLoading(false);
       }
     };
     const token = localStorage.getItem("token");
     if (!token) navigate("/login");
     fetchData().catch(console.error);
   }, [productId]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p className="text-xl">Carregando...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen">
@@ -75,63 +86,70 @@ const ProductPage = () => {
           <Menu size={32} />
         </button>
 
-        <div className="flex flex-col md:flex-row">
-          <main className="w-full p-4 flex flex-col items-center md:items-start md:flex-row gap-8">
-            {/* Imagem */}
-            <div className="w-48 h-48 bg-gray-300 rounded-md overflow-hidden">
-              {product?.image ? (
-                <img
-                  src={product.image}
-                  alt={product.name}
-                  className="w-full h-full object-cover object-center"
-                />
-              ) : (
-                <img
-                  src="/no-image.png"
-                  alt="Imagem não disponível"
-                  className="w-full h-full object-cover object-center"
-                />
-              )}
-            </div>
-
-            {/* Informações do produto */}
-            <div className="flex-1 space-y-2 text-left">
-              <p>
-                <strong>Nome:</strong> {product?.name}
-              </p>
-              <p>
-                <strong>Categoria:</strong> {product?.category?.name}
-              </p>
-              <p>
-                <strong>Preço unitário:</strong>{" "}
-                {formatMoney(product?.unitPrice || 0)}
-              </p>
-              <p>
-                <strong>Estoque disponível:</strong> {product?.quantity}
-              </p>
-              <p>
-                <strong>Valor Total:</strong>{" "}
-                {formatMoney(
-                  (product?.unitPrice || 0) * (product?.quantity || 0)
+        <div className="flex flex-col">
+          <main className="w-full p-4 flex flex-col items-center md:items-start gap-8 text-lg">
+            {/* Imagem e informações */}
+            <p className="font-bold text-xl">Produto</p>
+            <div className="flex flex-col md:flex-row w-full gap-8">
+              {/* Imagem */}
+              <div className="w-64 h-64 bg-gray-300 rounded-md overflow-hidden">
+                {product?.image ? (
+                  <img
+                    src={product.image}
+                    alt={product.name}
+                    className="w-full h-full object-cover object-center"
+                  />
+                ) : (
+                  <img
+                    src="/no-image.png"
+                    alt="Imagem não disponível"
+                    className="w-full h-full object-cover object-center"
+                  />
                 )}
-              </p>
-            </div>
+              </div>
 
-            {/* Histórico (simulação com 3 registros estáticos por enquanto) */}
-            <div className="w-full mt-6 md:mt-0 md:w-1/2">
-              <h2 className="font-semibold mb-2">Histórico</h2>
-              <div className="space-y-2">
-                <div className="bg-white p-3 rounded-md shadow-sm">
-                  Registro 1: Entrada de 10 unidades
-                </div>
-                <div className="bg-white p-3 rounded-md shadow-sm">
-                  Registro 2: Saída de 5 unidades
-                </div>
-                <div className="bg-white p-3 rounded-md shadow-sm">
-                  Registro 3: Atualização de preço
-                </div>
+              {/* Informações do produto */}
+              <div className="flex-1 space-y-3 text-left">
+                <p>
+                  <strong>Nome:</strong> {product?.name}
+                </p>
+                <p>
+                  <strong>Código de Barras:</strong>{" "}
+                  {formatBarCode(product?.barCode || "N/A")}
+                </p>
+                <p className="flex items-start gap-2">
+                  <strong>Categoria:</strong>{" "}
+                  {product?.category?.name || "Sem categoria"}{" "}
+                  <button
+                  className="flex p-0 m-0"
+                    onClick={() =>
+                      navigate(`/category/${product?.category?.id}`)
+                    }
+                  >
+                    <Eye size={24} />
+                  </button>
+                </p>
+                <p>
+                  <strong>Preço Unitário:</strong>{" "}
+                  {formatMoney(product?.unitPrice || 0)}
+                </p>
+                <p>
+                  <strong>Estoque Disponível:</strong> {product?.quantity || 0}
+                </p>
+                <p>
+                  <strong>Valor Total:</strong>{" "}
+                  {formatMoney(
+                    (product?.unitPrice || 0) * (product?.quantity || 0)
+                  )}
+                </p>
               </div>
             </div>
+
+            {/* Histórico (abaixo) */}
+            <AuditLogHistory
+              isSpecific={true}
+              logs={auditlogs}
+            ></AuditLogHistory>
           </main>
         </div>
       </div>

@@ -1,4 +1,14 @@
 import { SideBar } from "@/components/SideBar";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import Category from "@/models/category.model";
 import { formatMoney } from "@/models/product.model";
 import { decodeToken } from "@/services/auth.service";
@@ -16,14 +26,20 @@ import {
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
+import { toast } from "sonner";
 
 type FilterOption = "name" | "totalStock" | "productCount" | "value";
 
 const ListCategoriesPage = () => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
+  const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(
+    null
+  );
   const [canEdit, setCanEdit] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -32,6 +48,7 @@ const ListCategoriesPage = () => {
       const decodedToken = decodeToken(localStorage.getItem("token"));
       const canEdit = await getRolesWhoCanEdit();
       setCanEdit(canEdit.includes(decodedToken!.role));
+      setLoading(false);
     };
 
     const token = localStorage.getItem("token");
@@ -51,10 +68,18 @@ const ListCategoriesPage = () => {
 
   const filterIcons: Record<FilterOption, React.JSX.Element> = {
     name: <AArrowDown size={24} />,
-    totalStock: <Container size={24}/>,
+    totalStock: <Container size={24} />,
     productCount: <ShoppingBag size={24} />,
     value: <BadgeDollarSign size={24} />,
   };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <p className="text-xl">Carregando...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen">
@@ -84,20 +109,20 @@ const ListCategoriesPage = () => {
           <main className="w-full p-4">
             <div className="flex flex-col md:flex-row justify-between items-center mb-4">
               <div className="text-center md:text-left mb-2 md:mb-0">
-                <h2 className="text-2xl md:text-lg font-semibold">
+                <h2 className="text-2xl md:text-xl font-semibold">
                   Categorias
                 </h2>
-                <p className="text-base md:text-sm">
+                <p className="text-base">
                   {totalCategories} categorias cadastradas
                 </p>
               </div>
 
               {/* Formulário superior */}
-              <form className="flex flex-nowrap sm:justify-end gap-2 w-full sm:max-w-md max-w-xs bg-white text-black border border-[--color-color-3] p-2 rounded-lg">
+              <form className="flex gap-2 w-full sm:max-w-md max-w-xs bg-white text-black border p-2 rounded-lg">
                 <input
                   type="text"
                   placeholder="Pesquisar por..."
-                  className="border p-1.5 rounded text-base w-full sm:w-40"
+                  className="border p-1.5 rounded text-base w-full sm:w-50"
                 />
                 <div className="relative inline-block text-left">
                   <button
@@ -153,7 +178,7 @@ const ListCategoriesPage = () => {
                 </button>
                 <button
                   type="submit"
-                  className="border p-1.5 rounded text-base"
+                  className="border p-1.5 rounded w-auto text-base"
                 >
                   Enviar
                 </button>
@@ -165,17 +190,11 @@ const ListCategoriesPage = () => {
               <table className="min-w-full bg-white text-lg md:text-base">
                 <thead className="bg-color-3 text-black border border-black ">
                   <tr>
-                    <th className="px-4 py-3 ">Nome</th>
-                    <th className="px-4 py-3">
-                      Quantidade de Produtos
-                    </th>
-                    <th className="px-4 py-3">
-                      Estoque Total
-                    </th>
+                    <th className="px-4 py-3">Nome</th>
+                    <th className="px-4 py-3">Quantidade de Produtos</th>
+                    <th className="px-4 py-3">Estoque Total</th>
                     <th className="px-4 py-3">Valor Total</th>
-                    <th className={canEdit ? `px-4 py-3` : `hidden`}>
-                      Ações
-                    </th>
+                    <th className="px-4 py-3">Ações</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -186,37 +205,93 @@ const ListCategoriesPage = () => {
                         index % 2 === 0 ? "bg-color-1" : "bg-color-2"
                       }`}
                     >
-                      <td className="border border-black  px-4 py-3">{category.name}</td>
-                      <td className="border border-black  px-4 py-3">
+                      <td className="border border-black px-4 py-3">
+                        {category.name}
+                      </td>
+                      <td className="border border-black px-4 py-3">
                         {category.productCount}
                       </td>
-                      <td className="border border-black  px-4 py-3">
+                      <td className="border border-black px-4 py-3">
                         {category.totalStock}
                       </td>
-                      <td className="border border-black  px-4 py-3">
+                      <td className="border border-black px-4 py-3">
                         {formatMoney(category.value)}
                       </td>
-                      <td
-                        className={
-                          canEdit ? `border border-black gap-x-2 px-4 py-3` : `hidden`
-                        }
-                      >
+                      <td className="border border-black gap-x-2 px-4 py-3">
                         <button
                           onClick={() => navigate(`/category/${category.id}`)}
                         >
                           <Eye size={32} />
                         </button>
                         <button
+                          className={
+                            canEdit
+                              ? ``
+                              : `hidden`
+                          }
                           onClick={() =>
                             navigate(`/category/edit/${category.id}`)
                           }
                         >
                           <Pencil size={32} />
                         </button>
-                        <button disabled={category.productCount != 0}
-                        onClick={async () => await deleteCategory(Number(category.id))}>
-                          <Trash size={32} />
-                        </button>
+                        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                          <DialogTrigger asChild>
+                            <button
+                              className={
+                                canEdit
+                                  ? ``
+                                  : `hidden`
+                              }
+                              disabled={category.productCount !== 0}
+                              onClick={() => setCategoryToDelete(category)}
+                            >
+                              <Trash size={32} />
+                            </button>
+                          </DialogTrigger>
+
+                          <DialogContent>
+                            <DialogHeader>
+                              <DialogTitle>Confirmar exclusão</DialogTitle>
+                              <DialogDescription>
+                                Tem certeza que deseja excluir a categoria "
+                                {categoryToDelete?.name}"? Esta ação não pode
+                                ser desfeita.
+                              </DialogDescription>
+                            </DialogHeader>
+
+                            <DialogFooter>
+                              <Button
+                                variant="secondary"
+                                onClick={() => {
+                                  setCategoryToDelete(null)
+                                  setIsDialogOpen(false);
+                                }}
+                              >
+                                Cancelar
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                onClick={async () => {
+                                  await deleteCategory(
+                                    categoryToDelete?.id || ""
+                                  );
+                                  setCategories((prev) =>
+                                    prev.filter(
+                                      (c) => c.id !== categoryToDelete?.id
+                                    )
+                                  );
+                                  setCategoryToDelete(null);
+                                  setIsDialogOpen(false);
+                                  toast.success(
+                                    `Categoria "${categoryToDelete?.name}" excluída com sucesso!`)
+                                }}
+                              >
+                                Confirmar
+                              </Button>
+                            </DialogFooter>
+                          </DialogContent>
+                        </Dialog>
                       </td>
                     </tr>
                   ))}

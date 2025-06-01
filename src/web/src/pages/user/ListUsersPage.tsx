@@ -1,8 +1,8 @@
 import { SideBar } from "@/components/SideBar";
 import User, { maskCPF } from "@/models/user.model";
-import { decodeToken, logout } from "@/services/auth.service";
+import { decodeToken } from "@/services/auth.service";
 import { getAllUsers, getRolesWhoCanEdit } from "@/services/user.service";
-import { AArrowDown, IdCard, Mails, Menu, Pencil, Trash } from "lucide-react";
+import { AArrowDown, IdCard, Mails, Menu, Pencil } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 
@@ -72,10 +72,8 @@ const ListUsersPage = () => {
           <main className="w-full p-4">
             <div className="flex flex-col md:flex-row justify-between items-center mb-4">
               <div className="text-center md:text-left mb-2 md:mb-0">
-                <h2 className="text-2xl md:text-lg font-semibold">Usuários</h2>
-                <p className="text-base md:text-sm">
-                  {totalUsers} usuários cadastrados
-                </p>
+                <h2 className="text-2xl md:text-xl font-semibold">Usuários</h2>
+                <p className="text-base">{totalUsers} usuários cadastrados</p>
               </div>
 
               {/* Formulário superior */}
@@ -145,15 +143,11 @@ const ListUsersPage = () => {
               <table className="min-w-full bg-white border text-lg md:text-base">
                 <thead className="bg-color-3 text-black border border-black ">
                   <tr>
-                    <th className="px-4 py-3  ">
-                      Nome (Nome de Usuário)
-                    </th>
+                    <th className="px-4 py-3  ">Nome (Nome de Usuário)</th>
                     <th className="px-4 py-3 ">CPF</th>
                     <th className="px-4 py-3 ">Email</th>
                     <th className="px-4 py-3 ">Cargo</th>
-                    <th className={canEdit ? `px-4 py-3 ` : `hidden`}>
-                      Ações
-                    </th>
+                    <th className={canEdit ? `px-4 py-3 ` : `hidden`}>Ações</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -167,10 +161,20 @@ const ListUsersPage = () => {
                       <td className="border border-black   px-4 py-3">
                         {user.displayName} <span>({user.userName})</span>
                       </td>
-                      <td className="border border-black  px-4 py-3">{maskCPF(user.cpf)}</td>
-                      <td className="border border-black  px-4 py-3">{user.email}</td>
-                      <td className="border border-black px-4 py-3">{user.role}</td>
-                      <td className={canEdit ? `border border-black  px-4 py-3` : `hidden`}>
+                      <td className="border border-black  px-4 py-3">
+                        {maskCPF(user.cpf)}
+                      </td>
+                      <td className="border border-black  px-4 py-3">
+                        {user.email}
+                      </td>
+                      <td className="border border-black px-4 py-3">
+                        {user.role}
+                      </td>
+                      <td
+                        className={
+                          canEdit ? `border border-black  px-4 py-3` : `hidden`
+                        }
+                      >
                         <button
                           onClick={() => navigate(`/user/edit/${user.id}`)}
                         >

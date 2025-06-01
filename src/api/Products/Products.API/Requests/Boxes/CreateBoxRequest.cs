@@ -2,6 +2,7 @@
 
 public class CreateBoxRequest
 {
+    public string Barcode { get; set; }
     public string Name { get; set; }
     public decimal Discount { get; set; }
     public decimal UnitPrice { get; set; }

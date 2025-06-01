@@ -17,7 +17,7 @@ public class CategoryService(ICategoryRepository categoryRepository, IProductRep
         return categories.ToDTO();
     }
 
-    public async Task<CategoryDTO> GetByIdAsync(int id)
+    public async Task<CategoryDTO> GetByIdAsync(Guid id)
     {
         var category = await _categoryRepository.GetByIdAsync(id);
         return category?.ToDTO();
@@ -29,7 +29,7 @@ public class CategoryService(ICategoryRepository categoryRepository, IProductRep
         return category?.ToDTO();
     }
 
-    public async Task<Result<CategoryDTO>> CreateAsync(Guid createdBy, CategoryDTO entity)
+    public async Task<Result<CategoryDTO>> CreateAsync(CategoryDTO entity)
     {
         if (await GetByNameAsync(entity.Name) is not null)
             return Result.Fail("Category already exists");
@@ -43,15 +43,13 @@ public class CategoryService(ICategoryRepository categoryRepository, IProductRep
         var newEntity = new Category
         {
             Name = entity.Name.Trim(),
-            CreatedBy = createdBy,
-            UpdatedBy = createdBy
         };
 
         var result = await _categoryRepository.CreateAsync(newEntity);
         return Result.Ok(result.ToDTO());
     }
 
-    public async Task<Result<CategoryDTO>> UpdateAsync(Guid updatedBy, CategoryDTO entity)
+    public async Task<Result<CategoryDTO>> UpdateAsync(CategoryDTO entity)
     {
         var errors = new List<string>();
         if (string.IsNullOrWhiteSpace(entity.Name))
@@ -73,7 +71,6 @@ public class CategoryService(ICategoryRepository categoryRepository, IProductRep
             return Result.Fail("Category already exists");
 
         existingEntity.Name = entity.Name.Trim();
-        existingEntity.UpdatedBy = updatedBy;
 
         var result = await _categoryRepository.UpdateAsync(existingEntity);
 
@@ -83,12 +80,14 @@ public class CategoryService(ICategoryRepository categoryRepository, IProductRep
         return Result.Ok(result.ToDTO());
     }
 
-    public async Task<bool> DeleteAsync(int id)
+    public async Task<bool> DeleteAsync(Guid id)
     {
+        var category = await _categoryRepository.GetByIdAsync(id);
+        if (category.Products.Count != 0) return false;
         return await _categoryRepository.DeleteAsync(id);
     }
 
-    public async Task<Result<CategoryDTO>> AddProduct(Guid updatedBy, int categoryId, Guid productId)
+    public async Task<Result<CategoryDTO>> AddProduct(Guid categoryId, Guid productId)
     {
         var errors = new List<string>();
 
@@ -105,7 +104,6 @@ public class CategoryService(ICategoryRepository categoryRepository, IProductRep
         if (errors.Count > 0)
             return Result.Fail(errors);
 
-        category.UpdatedBy = updatedBy;
         category.Products.Add(product);
 
         var result = await _categoryRepository.UpdateAsync(category);
@@ -116,7 +114,7 @@ public class CategoryService(ICategoryRepository categoryRepository, IProductRep
         return Result.Ok(result.ToDTO());
     }
 
-    public async Task<Result<CategoryDTO>> RemoveProduct(Guid updatedBy, int categoryId, Guid productId)
+    public async Task<Result<CategoryDTO>> RemoveProduct(Guid categoryId, Guid productId)
     {
         var errors = new List<string>();
 
@@ -133,7 +131,6 @@ public class CategoryService(ICategoryRepository categoryRepository, IProductRep
         if (errors.Count > 0)
             return Result.Fail(errors);
 
-        category.UpdatedBy = updatedBy;
         category.Products.Remove(product);
 
         var result = await _categoryRepository.UpdateAsync(category);

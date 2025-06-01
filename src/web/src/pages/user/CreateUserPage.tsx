@@ -22,6 +22,8 @@ const CreateUserPage = () => {
   const { id } = useParams();
 
   const [userId, setUserId] = useState<string | null>(null);
+  const [loggedInUserId, setLoggedInUserId] = useState<string | null>(null);
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [roles, setRoles] = useState<string[]>([]);
   const [user, setUser] = useState<User | null>(null);
@@ -57,6 +59,8 @@ const CreateUserPage = () => {
         navigate("/users");
         return;
       }
+
+      setLoggedInUserId(decodedToken.sub);
 
       const allRoles = await getRoles();
       setRoles(allRoles);
@@ -115,7 +119,7 @@ const CreateUserPage = () => {
           userName: formData.userName,
           displayName: formData.displayName,
           email: formData.email,
-          cpf: formData.cpf,
+          cpf: formData.cpf.replaceAll(/\D/g, ""),
           password: formData.password,
           role: formData.role,
         };
@@ -191,6 +195,7 @@ const CreateUserPage = () => {
                 onChange={handleChange}
                 className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
                 required
+                disabled={userId !== loggedInUserId && !!userId}
               />
 
               <input
@@ -201,6 +206,7 @@ const CreateUserPage = () => {
                 onChange={handleChange}
                 className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
                 required
+                disabled={userId !== loggedInUserId && !!userId}
               />
 
               <input
@@ -221,17 +227,18 @@ const CreateUserPage = () => {
                 value={formData.email}
                 onChange={handleChange}
                 className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                disabled={userId !== loggedInUserId && !!userId}
                 required
               />
 
               <input
+                className={(userId !== loggedInUserId && !!userId) ? "hidden" : "border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"}
                 type="password"
                 name="password"
                 placeholder="Senha"
                 value={formData.password}
                 onChange={handleChange}
-                className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                required
+                required={!userId || userId === loggedInUserId}
               />
 
               <select
@@ -240,6 +247,7 @@ const CreateUserPage = () => {
                 onChange={handleChange}
                 className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
                 required
+                disabled={userId === loggedInUserId}
               >
                 <option value="" disabled>
                   Selecione o cargo
