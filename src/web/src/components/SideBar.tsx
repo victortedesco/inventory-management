@@ -216,7 +216,7 @@ export const SideBar = ({ isOpen, setIsOpen }: SideBarProps) => {
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
-                    setSelectedItem(searchResults[0] || "");
+                    setSelectedItem(searchResults[0] || null);
                   }}
                 >
                   <input

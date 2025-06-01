@@ -46,3 +46,5 @@ export const getAuditLogsByUserId = (userId: string): Promise<AuditLog[]> => {
 export const getAuditLogsByActionType = (actionType: 'Create' | 'Update' | 'Delete'): Promise<AuditLog[]> => {
   return fetchJson<AuditLog[]>(`${AUDIT_LOG_API_URL}/action/${actionType}`);
 };
+
+

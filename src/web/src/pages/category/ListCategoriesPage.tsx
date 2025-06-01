@@ -12,7 +12,7 @@ import {
 import Category from "@/models/category.model";
 import { formatMoney } from "@/models/product.model";
 import { decodeToken } from "@/services/auth.service";
-import { deleteCategory, getAllCategories } from "@/services/category.service";
+import { deleteCategory, getAllCategories, getCategoriesByTotalStock, getCategoriesByValue } from "@/services/category.service";
 import { getRolesWhoCanEdit } from "@/services/user.service";
 import {
   AArrowDown,
@@ -40,6 +40,7 @@ const ListCategoriesPage = () => {
   );
   const [canEdit, setCanEdit] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -64,6 +65,39 @@ const ListCategoriesPage = () => {
   const handleFilterSelect = (filter: FilterOption) => {
     setSelectedFilter(filter);
     setShowFilterOptions(false);
+  };
+
+  const handleSearch = async (event: React.FormEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    if (!searchQuery.trim()) {
+      const categories = await getAllCategories();
+      setCategories(categories);
+      return;
+    }
+    switch (selectedFilter) {
+      case "name":
+        const categoriesByName = await getAllCategories(searchQuery);
+        setCategories(categoriesByName);
+        break;
+      case "totalStock": {
+        const convertedSearch: number[] = searchQuery.split(" ").map(Number);
+        const smallestValue = Math.min(...convertedSearch);
+        const largestValue = Math.max(...convertedSearch)
+
+        const categoriesByTotalStock = await getCategoriesByTotalStock(smallestValue, largestValue);
+        setCategories(categoriesByTotalStock);
+        break;
+      }
+      case "value": {
+        const convertedSearch: number[] = searchQuery.split(" ").map(Number);
+        const smallestValue = Math.min(...convertedSearch);
+        const largestValue = Math.max(...convertedSearch)
+
+        const categoriesByValue = await getCategoriesByValue(smallestValue, largestValue);
+        setCategories(categoriesByValue);
+        break;
+      }
+    }
   };
 
   const filterIcons: Record<FilterOption, React.JSX.Element> = {
@@ -123,6 +157,8 @@ const ListCategoriesPage = () => {
                   type="text"
                   placeholder="Pesquisar por..."
                   className="border p-1.5 rounded text-base w-full sm:w-50"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                 />
                 <div className="relative inline-block text-left">
                   <button
@@ -177,6 +213,7 @@ const ListCategoriesPage = () => {
                   + Categoria
                 </button>
                 <button
+                  onClick={handleSearch}
                   type="submit"
                   className="border p-1.5 rounded w-auto text-base"
                 >

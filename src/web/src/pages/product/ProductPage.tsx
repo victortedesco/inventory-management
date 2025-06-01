@@ -1,12 +1,22 @@
 import AuditLogHistory from "@/components/AuditLogHistory";
 import { SideBar } from "@/components/SideBar";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { AuditLog } from "@/models/auditlog.model";
 import Product, { formatBarCode, formatMoney } from "@/models/product.model";
 import { getAuditLogsByEntityId } from "@/services/audit-log.service";
 import { decodeToken } from "@/services/auth.service";
-import { getProductById } from "@/services/product.service";
+import { deleteProduct, getProductById } from "@/services/product.service";
 import { getRolesWhoCanEdit } from "@/services/user.service";
-import { Eye, Menu } from "lucide-react";
+import { Eye, Menu, Trash } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
@@ -19,6 +29,7 @@ const ProductPage = () => {
 
   const [productId, setProductId] = useState<string | null>(null);
   const [product, setProduct] = useState<Product>();
+  const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
   const [auditlogs, setAuditLogs] = useState<AuditLog[]>([]);
 
   const [canEdit, setCanEdit] = useState<boolean>(true);
@@ -89,7 +100,59 @@ const ProductPage = () => {
         <div className="flex flex-col">
           <main className="w-full p-4 flex flex-col items-center md:items-start gap-8 text-lg">
             {/* Imagem e informações */}
-            <p className="font-bold text-xl">Produto</p>
+            <div className="flex items-center justify-between w-full">
+              <p className="font-bold text-xl">Produto</p>
+              <div className={!canEdit ? "hidden" : "flex gap-2"}>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    navigate("/product/edit/" + productId);
+                  }}
+                >
+                  Editar
+                </Button>
+                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="destructive" disabled={product?.quantity !== 0}>Excluir</Button>
+                  </DialogTrigger>
+
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Confirmar exclusão</DialogTitle>
+                      <DialogDescription>
+                        Tem certeza que deseja excluir o produto "
+                        {product?.name}"? Esta ação não pode ser desfeita.
+                      </DialogDescription>
+                    </DialogHeader>
+
+                    <DialogFooter>
+                      <Button
+                        variant="secondary"
+                        onClick={() => {
+                          setIsDialogOpen(false);
+                        }}
+                      >
+                        Cancelar
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        onClick={async () => {
+                          await deleteProduct(product?.id ?? "");
+
+                          setIsDialogOpen(false);
+                          toast.success(
+                            `Produto "${product?.name}" excluído com sucesso!`
+                          );
+                          navigate("/products");
+                        }}
+                      >
+                        Confirmar
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </div>
             <div className="flex flex-col md:flex-row w-full gap-8">
               {/* Imagem */}
               <div className="w-64 h-64 bg-gray-300 rounded-md overflow-hidden">
@@ -121,7 +184,7 @@ const ProductPage = () => {
                   <strong>Categoria:</strong>{" "}
                   {product?.category?.name || "Sem categoria"}{" "}
                   <button
-                  className="flex p-0 m-0"
+                    className="flex p-0 m-0"
                     onClick={() =>
                       navigate(`/category/${product?.category?.id}`)
                     }

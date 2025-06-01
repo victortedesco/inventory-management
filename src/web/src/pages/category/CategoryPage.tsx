@@ -15,7 +15,7 @@ import Category from "@/models/category.model";
 import Product, { formatBarCode, formatMoney } from "@/models/product.model";
 import { getAuditLogsByEntityId } from "@/services/audit-log.service";
 import { decodeToken } from "@/services/auth.service";
-import { getCategoryById } from "@/services/category.service";
+import { deleteCategory, getCategoryById } from "@/services/category.service";
 import {
   deleteProduct,
   getAllProductsByCategoryId,
@@ -101,7 +101,59 @@ const CategoryPage = () => {
         <div className="flex flex-col md:flex-row">
           <main className="w-full p-4">
             <div className="flex flex-col text-xl mb-4">
-              <p className="font-bold">Categoria</p>
+              <div className="flex items-center justify-between w-full">
+              <p className="font-bold text-xl">Categoria</p>
+              <div className={!canEdit ? "hidden" : "flex gap-2"}>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    navigate("/category/edit/" + categoryId);
+                  }}
+                >
+                  Editar
+                </Button>
+                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="destructive" disabled={category?.productCount !== 0}>Excluir</Button>
+                  </DialogTrigger>
+
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Confirmar exclusão</DialogTitle>
+                      <DialogDescription>
+                        Tem certeza que deseja excluir a categoria "
+                        {category?.name}"? Esta ação não pode ser desfeita.
+                      </DialogDescription>
+                    </DialogHeader>
+
+                    <DialogFooter>
+                      <Button
+                        variant="secondary"
+                        onClick={() => {
+                          setIsDialogOpen(false);
+                        }}
+                      >
+                        Cancelar
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        onClick={async () => {
+                          await deleteCategory(category?.id ?? "");
+
+                          setIsDialogOpen(false);
+                          toast.success(
+                            `Categoria "${category?.name}" excluída com sucesso!`
+                          );
+                          navigate("/categories");
+                        }}
+                      >
+                        Confirmar
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </div>
               <p>Nome: {category?.name}</p>
               <p>Valor total: {formatMoney(category?.value ?? 0)}</p>
               <p>Estoque disponível: {category?.totalStock}</p>

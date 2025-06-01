@@ -11,6 +11,7 @@ type FilterOption = "name" | "cpf" | "email";
 const ListUsersPage = () => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const [users, setUsers] = useState<User[]>([]);
   const [canEdit, setCanEdit] = useState<boolean>(false);
 
@@ -36,6 +37,41 @@ const ListUsersPage = () => {
   const handleFilterSelect = (filter: FilterOption) => {
     setSelectedFilter(filter);
     setShowFilterOptions(false);
+  };
+
+  const handleSearch = async (event: React.FormEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+
+    if (!searchQuery.trim()) {
+      const users = await getAllUsers();
+      setUsers(users);
+      return;
+    }
+
+    let allUsers = await getAllUsers();
+    switch (selectedFilter) {
+      case "name":
+        allUsers = allUsers.filter((user) =>
+          user.displayName
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase().trim())
+        );
+        setUsers(allUsers);
+        break;
+      case "cpf":
+        allUsers = allUsers.filter((user) =>
+          user.cpf.toLowerCase().includes(searchQuery.toLowerCase().trim())
+        );
+        setUsers(allUsers);
+        break;
+      case "email":
+        allUsers = allUsers.filter((user) =>
+          user.email.toLowerCase().includes(searchQuery.toLowerCase().trim())
+        );
+
+        break;
+    }
+    setUsers(allUsers);
   };
 
   const filterIcons: Record<FilterOption, React.JSX.Element> = {
@@ -82,6 +118,8 @@ const ListUsersPage = () => {
                   type="text"
                   placeholder="Pesquisar por..."
                   className="border p-1.5 rounded text-base w-full sm:w-40"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                 />
                 <div className="relative inline-block text-left">
                   <button
@@ -130,6 +168,7 @@ const ListUsersPage = () => {
                   + Usuário
                 </button>
                 <button
+                  onSubmit={handleSearch}
                   type="submit"
                   className="border p-1.5 rounded text-base"
                 >

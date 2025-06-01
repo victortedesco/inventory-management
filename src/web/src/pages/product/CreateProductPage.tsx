@@ -217,7 +217,7 @@ const CreateProductPage = () => {
                 type="number"
                 name="unitPrice"
                 step="0.01"
-                min="0"
+                min="0.01"
                 max="999999.99"
                 placeholder="Preço por unidade (R$ 0,00)"
                 value={formData.unitPrice}
