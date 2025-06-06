@@ -25,7 +25,7 @@ export const getAllProducts: (
 export const getAllProductsByCategoryId: (
   categoryId: string,
   skip?: number,
-  take?: number,
+  take?: number
 ) => Promise<Product[]> = async (categoryId) => {
   const response = await fetch(`${PRODUCT_API_URL}/category/${categoryId}`, {
     method: "GET",
@@ -41,7 +41,9 @@ export const getAllProductsByCategoryId: (
   return data as Product[];
 };
 
-export const getProductById: (id: string) => Promise<Product | null> = async (id) => {
+export const getProductById: (id: string) => Promise<Product | null> = async (
+  id
+) => {
   const response = await fetch(`${PRODUCT_API_URL}/${id}`, {
     method: "GET",
     headers: {
@@ -56,14 +58,16 @@ export const getProductById: (id: string) => Promise<Product | null> = async (id
   return data as Product;
 };
 
-export const createProduct: (request: CreateProductRequest) => Promise<Product | null> = async (request) => {
+export const createProduct: (
+  request: CreateProductRequest
+) => Promise<Product | null> = async (request) => {
   const response = await fetch(`${PRODUCT_API_URL}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
-    body: JSON.stringify(request)
+    body: JSON.stringify(request),
   });
   if (response.status === 404 || response.status === 400) {
     console.error("Error creating product:", response.text());
@@ -71,16 +75,19 @@ export const createProduct: (request: CreateProductRequest) => Promise<Product |
   }
   const data = await response.json();
   return data as Product;
-}
+};
 
-export const updateProduct: (id: string, request: CreateProductRequest) => Promise<Product | null> = async (id, request) => {
+export const updateProduct: (
+  id: string,
+  request: CreateProductRequest
+) => Promise<Product | null> = async (id, request) => {
   const response = await fetch(`${PRODUCT_API_URL}/${id}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
-    body: JSON.stringify(request)
+    body: JSON.stringify(request),
   });
   if (response.status === 404 || response.status === 400) {
     console.error("Error updating product:", response.text());
@@ -88,9 +95,9 @@ export const updateProduct: (id: string, request: CreateProductRequest) => Promi
   }
   const data = await response.json();
   return data as Product;
-}
+};
 
-export const deleteProduct: (id: string) => Promise<boolean> = async(id) => {
+export const deleteProduct: (id: string) => Promise<boolean> = async (id) => {
   const response = await fetch(`${PRODUCT_API_URL}/${id}`, {
     method: "DELETE",
     headers: {
@@ -103,4 +110,24 @@ export const deleteProduct: (id: string) => Promise<boolean> = async(id) => {
     return false;
   }
   return true;
-}
+};
+
+export const addProductQuantity: (
+  id: string,
+  quantity: number
+) => Promise<Product | null> = async (id, quantity) => {
+  const response = await fetch(`${PRODUCT_API_URL}/${id}/quantity`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+    body: JSON.stringify(quantity),
+  });
+  if (response.status === 404 || response.status === 400) {
+    console.error("Error updating product:", response.text());
+    return null;
+  }
+  const data = await response.json();
+  return data as Product;
+};

@@ -24,8 +24,9 @@ import {
 import Product, { formatBarCode } from "@/models/product.model";
 import Box from "@/models/box.model";
 import { getAllBoxes } from "@/services/box.service";
-import { getAllProducts } from "@/services/product.service";
+import { addProductQuantity, getAllProducts } from "@/services/product.service";
 import { Button } from "./ui/button";
+import { toast } from "sonner";
 
 type StockItem = ({ type: "product" } & Product) | ({ type: "box" } & Box);
 
@@ -107,14 +108,19 @@ export const SideBar = ({ isOpen, setIsOpen }: SideBarProps) => {
     setSearchResults(filtered);
   }, [searchQuery, allResults]);
 
-  const handleAdjustStock = () => {
+  const handleAdjustStock = async () => {
     if (!selectedItem) return;
 
-    const newQuantity = selectedItem.quantity + quantityChange;
-
     if (selectedItem.type === "product") {
-      // Atualize estoque do produto
-      //updateProductStock(selectedItem.id, newQuantity);
+      const updatedProduct = await addProductQuantity(
+        selectedItem.id,
+        quantityChange
+      );
+      if (!updatedProduct) {
+        toast.error("Ocorreu um erro ao atualizar esse produto!");
+        return;
+      }
+      setSelectedItem(selectedItem as StockItem)
     } else {
       // Atualize estoque da caixa
       //updateBoxStock(selectedItem.id, newQuantity);
