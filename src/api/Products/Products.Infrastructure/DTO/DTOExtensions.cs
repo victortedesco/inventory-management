@@ -48,7 +48,7 @@ public static class DTOExtensions
             Barcode = box.Barcode,
             Name = box.Name,
             Discount = box.Discount,
-            UnitPrice = box.Products.Select(b => b.Product).Sum(p => p.UnitPrice),
+            UnitPrice = 0,
             Quantity = box.Quantity,
             Weight = box.Weight,
             Depth = box.Depth,

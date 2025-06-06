@@ -95,32 +95,31 @@ namespace Products.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ProductsInBoxes",
+                name: "ProductInBox",
                 schema: "products",
                 columns: table => new
                 {
-                    ProductId = table.Column<Guid>(type: "uuid", nullable: false),
-                    BoxId = table.Column<Guid>(type: "uuid", nullable: false),
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Quantity = table.Column<long>(type: "bigint", nullable: false),
-                    Id = table.Column<Guid>(type: "uuid", nullable: false)
+                    BoxId = table.Column<Guid>(type: "uuid", nullable: true),
+                    ProductId = table.Column<Guid>(type: "uuid", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ProductsInBoxes", x => new { x.ProductId, x.BoxId });
+                    table.PrimaryKey("PK_ProductInBox", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_ProductsInBoxes_Boxes_BoxId",
+                        name: "FK_ProductInBox_Boxes_BoxId",
                         column: x => x.BoxId,
                         principalSchema: "products",
                         principalTable: "Boxes",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_ProductsInBoxes_Products_ProductId",
+                        name: "FK_ProductInBox_Products_ProductId",
                         column: x => x.ProductId,
                         principalSchema: "products",
                         principalTable: "Products",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateIndex(
@@ -136,6 +135,18 @@ namespace Products.Infrastructure.Migrations
                 table: "Categories",
                 column: "Name",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProductInBox_BoxId",
+                schema: "products",
+                table: "ProductInBox",
+                column: "BoxId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ProductInBox_ProductId",
+                schema: "products",
+                table: "ProductInBox",
+                column: "ProductId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Products_Barcode",
@@ -156,12 +167,6 @@ namespace Products.Infrastructure.Migrations
                 table: "Products",
                 column: "Name",
                 unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ProductsInBoxes_BoxId",
-                schema: "products",
-                table: "ProductsInBoxes",
-                column: "BoxId");
         }
 
         /// <inheritdoc />
@@ -172,7 +177,7 @@ namespace Products.Infrastructure.Migrations
                 schema: "products");
 
             migrationBuilder.DropTable(
-                name: "ProductsInBoxes",
+                name: "ProductInBox",
                 schema: "products");
 
             migrationBuilder.DropTable(

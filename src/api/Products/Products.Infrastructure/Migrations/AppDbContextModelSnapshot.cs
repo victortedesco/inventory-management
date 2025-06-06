@@ -170,23 +170,26 @@ namespace Products.Infrastructure.Migrations
 
             modelBuilder.Entity("Products.Domain.Models.ProductInBox", b =>
                 {
-                    b.Property<Guid>("ProductId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("BoxId")
-                        .HasColumnType("uuid");
-
                     b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("BoxId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("ProductId")
                         .HasColumnType("uuid");
 
                     b.Property<long>("Quantity")
                         .HasColumnType("bigint");
 
-                    b.HasKey("ProductId", "BoxId");
+                    b.HasKey("Id");
 
                     b.HasIndex("BoxId");
 
-                    b.ToTable("ProductsInBoxes", "products");
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("ProductInBox", "products");
                 });
 
             modelBuilder.Entity("Products.Domain.Models.Product", b =>
@@ -200,21 +203,14 @@ namespace Products.Infrastructure.Migrations
 
             modelBuilder.Entity("Products.Domain.Models.ProductInBox", b =>
                 {
-                    b.HasOne("Products.Domain.Models.Box", "Box")
+                    b.HasOne("Products.Domain.Models.Box", null)
                         .WithMany("Products")
                         .HasForeignKey("BoxId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
 
-                    b.HasOne("Products.Domain.Models.Product", "Product")
-                        .WithMany()
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Box");
-
-                    b.Navigation("Product");
+                    b.HasOne("Products.Domain.Models.Product", null)
+                        .WithMany("ProductInBoxes")
+                        .HasForeignKey("ProductId");
                 });
 
             modelBuilder.Entity("Products.Domain.Models.Box", b =>
@@ -225,6 +221,11 @@ namespace Products.Infrastructure.Migrations
             modelBuilder.Entity("Products.Domain.Models.Category", b =>
                 {
                     b.Navigation("Products");
+                });
+
+            modelBuilder.Entity("Products.Domain.Models.Product", b =>
+                {
+                    b.Navigation("ProductInBoxes");
                 });
 #pragma warning restore 612, 618
         }
