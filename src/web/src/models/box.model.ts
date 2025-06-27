@@ -2,6 +2,7 @@ import { ProductInBox } from "./product.model";
 
 export interface Box {
   id: string;
+  image: string;
   barCode: string;
   name: string;
   discount: number;

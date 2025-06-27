@@ -67,7 +67,7 @@ const CategoryPage = () => {
     fetchData().catch(console.error);
   }, [categoryId]);
 
-  if (loading) {
+  if (loading || !category) {
     return (
       <div className="flex justify-center items-center h-screen">
         <p className="text-xl">Carregando...</p>
@@ -114,7 +114,7 @@ const CategoryPage = () => {
                     <DialogTrigger asChild>
                       <Button
                         variant="destructive"
-                        disabled={category?.productCount !== 0}
+                        disabled={category.productCount !== 0}
                       >
                         Excluir
                       </Button>
@@ -125,7 +125,7 @@ const CategoryPage = () => {
                         <DialogTitle>Confirmar exclusão</DialogTitle>
                         <DialogDescription>
                           Tem certeza que deseja excluir a categoria "
-                          {category?.name}"? Esta ação não pode ser desfeita.
+                          {category.name}"? Esta ação não pode ser desfeita.
                         </DialogDescription>
                       </DialogHeader>
 
@@ -141,11 +141,11 @@ const CategoryPage = () => {
                         <Button
                           variant="destructive"
                           onClick={async () => {
-                            await deleteCategory(category?.id ?? "");
+                            await deleteCategory(category.id ?? "");
 
                             setIsDialogOpen(false);
                             toast.success(
-                              `Categoria "${category?.name}" excluída com sucesso!`
+                              `Categoria "${category.name}" excluída com sucesso!`
                             );
                             navigate("/categories");
                           }}
@@ -157,9 +157,9 @@ const CategoryPage = () => {
                   </Dialog>
                 </div>
               </div>
-              <p>Nome: {category?.name}</p>
-              <p>Valor Total: {formatMoney(category?.value ?? 0)}</p>
-              <p>Estoque Disponível: {category?.totalStock}</p>
+              <p>Nome: {category.name}</p>
+              <p>Valor Total: {formatMoney(category.value ?? 0)}</p>
+              <p>Estoque Disponível: {category.totalStock}</p>
             </div>
             <div>
               <div className="mb-4">
@@ -172,7 +172,8 @@ const CategoryPage = () => {
                       <tr>
                         <th className="px-4 py-3 ">Imagem</th>
                         <th className="px-4 py-3 ">Nome (Código de Barras)</th>
-                        <th className="px-4 py-3 ">Estoque</th>
+                        <th className="px-4 py-3 ">Estoque Unitário</th>
+                        <th className="px-4 py-3 ">Estoque Total</th>
                         <th className="px-4 py-3 ">Preço Unitário</th>
                         <th className="px-4 py-3">Valor Total</th>
                         <th className="px-4 py-3">Ações</th>

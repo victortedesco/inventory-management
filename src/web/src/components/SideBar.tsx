@@ -110,7 +110,7 @@ export const SideBar = ({ isOpen, setIsOpen }: SideBarProps) => {
   const handleAdjustStock = () => {
     if (!selectedItem) return;
 
-    const newQuantity = quantityChange;
+    const newQuantity = selectedItem.stock + quantityChange;
 
     if (selectedItem.type === "product") {
       updateProductStock(selectedItem.id, newQuantity);
@@ -123,6 +123,7 @@ export const SideBar = ({ isOpen, setIsOpen }: SideBarProps) => {
     setStockChange(0);
     setSearchQuery("");
     setMoveDialogOpen(false);
+    window.location.reload();
   };
 
   const navItems = [

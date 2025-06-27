@@ -1,6 +1,9 @@
 import { SideBar } from "@/components/SideBar";
 import { Box } from "@/models/box.model";
-import { CreateBoxRequest, UpdateBoxRequest } from "@/requests/box-request.interface";
+import {
+  CreateBoxRequest,
+  UpdateBoxRequest,
+} from "@/requests/box-request.interface";
 import { decodeToken } from "@/services/auth.service";
 import { createBox, getBoxById, updateBox } from "@/services/box.service";
 import { getRolesWhoCanEdit } from "@/services/user.service";
@@ -203,6 +206,67 @@ const CreateBoxPage = () => {
                 max="999999.99"
                 placeholder="Preço por unidade (R$ 0,00)"
                 value={formData.unitPrice}
+                onChange={handleChange}
+                className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                required
+              />
+
+              <input
+                type="number"
+                name="discount"
+                step="0.01"
+                min="0"
+                max="100"
+                placeholder="Desconto (%)"
+                value={formData.discount}
+                onChange={handleChange}
+                className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                required
+              />
+
+              <input
+                type="number"
+                name="weight"
+                step="0.01"
+                min="0"
+                placeholder="Peso (kg)"
+                value={formData.weight}
+                onChange={handleChange}
+                className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                required
+              />
+
+              <input
+                type="number"
+                name="depth"
+                step="0.01"
+                min="0"
+                placeholder="Profundidade (cm)"
+                value={formData.depth}
+                onChange={handleChange}
+                className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                required
+              />
+
+              <input
+                type="number"
+                name="height"
+                step="0.01"
+                min="0"
+                placeholder="Altura (cm)"
+                value={formData.height}
+                onChange={handleChange}
+                className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                required
+              />
+
+              <input
+                type="number"
+                name="width"
+                step="0.01"
+                min="0"
+                placeholder="Largura (cm)"
+                value={formData.width}
                 onChange={handleChange}
                 className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
                 required

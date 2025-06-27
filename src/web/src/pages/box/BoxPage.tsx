@@ -78,7 +78,7 @@ const BoxPage = () => {
     fetchData().catch(console.error);
   }, [boxId]);
 
-  if (loading) {
+  if (loading || !box) {
     return (
       <div className="flex justify-center items-center h-screen">
         <p className="text-xl">Carregando...</p>
@@ -116,7 +116,7 @@ const BoxPage = () => {
               <div className={!canEdit ? "hidden" : "flex gap-2"}>
                 <AddProductModal
                   existingProducts={products}
-                  boxId={box?.id ?? ""}
+                  boxId={box.id ?? ""}
                   onAddProduct={fetchData}
                 ></AddProductModal>
                 <Button
@@ -134,7 +134,7 @@ const BoxPage = () => {
                   <DialogTrigger asChild>
                     <Button
                       variant="destructive"
-                      disabled={box?.productCount !== 0}
+                      disabled={box.productCount !== 0}
                     >
                       Excluir
                     </Button>
@@ -144,7 +144,7 @@ const BoxPage = () => {
                     <DialogHeader>
                       <DialogTitle>Confirmar exclusão</DialogTitle>
                       <DialogDescription>
-                        Tem certeza que deseja excluir o produto "{box?.name}"?
+                        Tem certeza que deseja excluir o produto "{box.name}"?
                         Esta ação não pode ser desfeita.
                       </DialogDescription>
                     </DialogHeader>
@@ -161,11 +161,11 @@ const BoxPage = () => {
                       <Button
                         variant="destructive"
                         onClick={async () => {
-                          await deleteBox(box?.id ?? "");
+                          await deleteBox(box.id ?? "");
 
                           setIsDeleteDialogOpen(false);
                           toast.success(
-                            `Caixa "${box?.name}" excluída com sucesso!`
+                            `Caixa "${box.name}" excluída com sucesso!`
                           );
                           navigate("/boxes");
                         }}
@@ -181,34 +181,38 @@ const BoxPage = () => {
               {/* Informações da caixa */}
               <div className="flex-1 space-y-3 text-left">
                 <p>
-                  <strong>Nome:</strong> {box?.name}
+                  <strong>Nome:</strong> {box.name}
                 </p>
                 <p>
                   <strong>Código de Barras:</strong>{" "}
-                  {formatBarCode(box?.barCode || "N/A")}
+                  {formatBarCode(box.barCode || "N/A")}
                 </p>
                 <p>
-                  <strong>Preço Unitário:</strong> R${" "}
-                  {box?.unitPrice.toFixed(2)}
+                  <strong>Preço Unitário:</strong>
+                   {formatMoney(box.unitPrice)}
                 </p>
                 <p>
-                  <strong>Desconto:</strong> {box?.discount}%
+                  <strong>Desconto:</strong> {box.discount}%
                 </p>
                 <p>
-                  <strong>Estoque:</strong> {box?.stock}
+                  <strong>Preço Final:</strong>
+                   {formatMoney(box.unitPrice * (1 - box.discount / 100))}
                 </p>
                 <p>
-                  <strong>Peso:</strong> {box?.weight} kg
+                  <strong>Estoque:</strong> {box.stock}
                 </p>
                 <p>
-                  <strong>Dimensões (C x L x A):</strong> {box?.depth}cm x{" "}
-                  {box?.width}cm x {box?.height}cm
+                  <strong>Peso:</strong> {box.weight} kg
                 </p>
                 <p>
-                  <strong>Produtos Totais:</strong> {box?.productCount}
+                  <strong>Dimensões (C x L x A):</strong> {box.depth}cm x{" "}
+                  {box.width}cm x {box.height}cm
                 </p>
                 <p>
-                  <strong>Produtos Únicos:</strong> {box?.uniqueProductCount}
+                  <strong>Produtos Totais:</strong> {box.productCount}
+                </p>
+                <p>
+                  <strong>Produtos Únicos:</strong> {box.uniqueProductCount}
                 </p>
               </div>
             </div>
@@ -229,6 +233,7 @@ const BoxPage = () => {
                       <th className="px-4 py-3">Categoria</th>
                       <th className="px-4 py-3">Estoque Unitário</th>
                       <th className="px-4 py-3">Estoque Total</th>
+                      <th className="px-4 py-3">Quantidade na caixa</th>
                       <th className="px-4 py-3">Preço Unitário</th>
                       <th className="px-4 py-3">Valor Total</th>
                       <th className="px-4 py-3">Ações</th>
@@ -275,6 +280,11 @@ const BoxPage = () => {
                           {product.totalStock}
                         </td>
                         <td className="border border-black  px-4 py-3">
+                          {box.products?.find(
+                            (bp) => bp.product.id === product.id
+                          )?.quantity || 0}
+                        </td>
+                        <td className="border border-black  px-4 py-3">
                           {formatMoney(product.unitPrice)}
                         </td>
                         <td className="border border-black  px-4 py-3">
@@ -289,7 +299,7 @@ const BoxPage = () => {
                               setIsOpen={setIsChangeProductQuantityOpen}
                               boxId={boxId || ""}
                               boxProductQuantity={
-                                box?.products?.find((bp) => bp.product.id === selectedProduct.id)?.quantity || 0
+                                box.products?.find((bp) => bp.product.id === selectedProduct.id)?.quantity || 0
                               }
                               product={selectedProduct}
                               onQuantityChanged={async () => {

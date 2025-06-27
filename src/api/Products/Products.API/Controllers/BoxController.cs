@@ -88,6 +88,7 @@ public class BoxController(IBoxService boxService) : ControllerBase
         var result = await _boxService.UpdateAsync(new BoxDTO
         {
             Id = id,
+            BarCode = box.BarCode,
             Name = box.Name,
             Discount = box.Discount,
             UnitPrice = box.UnitPrice,

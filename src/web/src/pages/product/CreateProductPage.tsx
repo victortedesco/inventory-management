@@ -146,7 +146,7 @@ const CreateProductPage = () => {
     }
   };
 
-  if (loading) {
+  if (loading || !categories || (productId && !product)) {
     return (
       <div className="flex justify-center items-center h-screen">
         <p className="text-xl">Carregando...</p>

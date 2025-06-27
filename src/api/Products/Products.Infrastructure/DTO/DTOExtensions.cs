@@ -30,9 +30,9 @@ public static class DTOExtensions
         {
             Id = category.Id,
             Name = category.Name,
-            TotalStock = (int)category.Products.Sum(p => p.Stock),
+            TotalStock = (int)category.Products.Sum(p => p.GetTotalStock()),
             ProductCount = category.Products.Count,
-            Value = category.Products.Sum(p => p.UnitPrice * p.Stock),
+            Value = category.Products.Sum(p => p.UnitPrice * p.GetTotalStock()),
         };
     }
 

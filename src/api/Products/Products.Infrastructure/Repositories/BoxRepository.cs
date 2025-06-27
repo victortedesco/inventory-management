@@ -23,17 +23,20 @@ public class BoxRepository(AppDbContext dbContext) : IBoxRepository
 
     public async Task<Box> GetByIdAsync(Guid id)
     {
-        return await _boxes.Include(b => b.Products).ThenInclude(pb => pb.Product).FirstOrDefaultAsync(b => b.Id == id);
+        return await _boxes
+            .Include(b => b.Products)
+            .ThenInclude(pb => pb.Product)
+            .FirstOrDefaultAsync(b => b.Id == id);
     }
 
     public async Task<IEnumerable<Box>> GetByProductIdAsync(Guid productId, int skip, int take, string name)
     {
         return await _boxes
+            .OrderByDescending(b => b.Name)
             .Include(b => b.Products)
                 .ThenInclude(pb => pb.Product)
             .Where(b => b.Products.Any(p => p.ProductId == productId) &&
                         (string.IsNullOrEmpty(name) || b.Name.ToLower().Contains(name.ToLower())))
-            .OrderByDescending(b => b.Name)
             .Skip(skip)
             .Take(take)
             .ToListAsync();

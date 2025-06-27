@@ -9,8 +9,9 @@ public class Product : IEntity<Guid>
     public uint GetTotalStock()
     {
         uint inBoxes = (uint)this.ProductInBoxes.Sum(pib => pib.Quantity);
+        uint boxStock = (uint)this.ProductInBoxes.Sum(pib => pib.Box.Stock);
 
-        return this.Stock + inBoxes;
+        return this.Stock + inBoxes + boxStock;
     }
     public string BarCode { get; set; }
     public Category Category { get; set; }

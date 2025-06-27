@@ -14,14 +14,21 @@ function formatValue(value: unknown, field: string): string {
 
   const isNumeric = !isNaN(num) && typeof value !== "boolean";
 
+  if (field === "discount" && isNumeric) {
+    return Number(num) % 1 === 0
+      ? `${Number(num)}%`
+      : `${Number(num).toFixed(2)}%`;
+  }
+
   if (field === "unitprice" && isNumeric) {
     return formatMoney(num);
   }
+
   if (field === "barcode" && typeof value === "string") {
     return formatBarCode(value);
   }
 
-  if (field === "quantity" && isNumeric) {
+  if ((field === "stock" || field === "quantity") && isNumeric) {
     return num.toFixed(0);
   }
 

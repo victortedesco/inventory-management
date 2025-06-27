@@ -16,18 +16,28 @@ public class CategoryRepository(AppDbContext dbContext) : ICategoryRepository
             .Skip(skip)
             .Take(take)
             .Include(c => c.Products)
+            .ThenInclude(p => p.ProductInBoxes)
+            .ThenInclude(pib => pib.Box)
             .Where(c => string.IsNullOrEmpty(name) || c.Name.ToLower().Contains(name.ToLower()))
             .ToListAsync();
     }
 
     public async Task<Category> GetByIdAsync(Guid id)
     {
-        return await _categories.Include(c => c.Products).FirstOrDefaultAsync(c => c.Id == id);
+        return await _categories
+            .Include(c => c.Products)
+            .ThenInclude(p => p.ProductInBoxes)
+            .ThenInclude(pib => pib.Box)
+            .FirstOrDefaultAsync(c => c.Id == id);
     }
 
     public async Task<Category> GetByNameAsync(string name)
     {
-        return await _categories.Include(c => c.Products).FirstOrDefaultAsync(c => c.Name.ToLower() == name.ToLower());
+        return await _categories
+            .Include(c => c.Products)
+            .ThenInclude(p => p.ProductInBoxes)
+            .ThenInclude(pib => pib.Box)
+            .FirstOrDefaultAsync(c => c.Name.ToLower() == name.ToLower());
     }
 
     public async Task<Category> CreateAsync(Category entity)

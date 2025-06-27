@@ -74,7 +74,7 @@ const ProductPage = () => {
     fetchData().catch(console.error);
   }, [productId]);
 
-  if (loading) {
+  if (loading || !productWithBoxes) {
     return (
       <div className="flex justify-center items-center h-screen">
         <p className="text-xl">Carregando...</p>
@@ -122,7 +122,7 @@ const ProductPage = () => {
                   <DialogTrigger asChild>
                     <Button
                       variant="destructive"
-                      disabled={productWithBoxes?.product.stock !== 0}
+                      disabled={productWithBoxes.product.stock !== 0}
                     >
                       Excluir
                     </Button>
@@ -133,7 +133,7 @@ const ProductPage = () => {
                       <DialogTitle>Confirmar exclusão</DialogTitle>
                       <DialogDescription>
                         Tem certeza que deseja excluir o produto "
-                        {productWithBoxes?.product.name}"? Esta ação não pode
+                        {productWithBoxes.product.name}"? Esta ação não pode
                         ser desfeita.
                       </DialogDescription>
                     </DialogHeader>
@@ -151,12 +151,12 @@ const ProductPage = () => {
                         variant="destructive"
                         onClick={async () => {
                           await deleteProduct(
-                            productWithBoxes?.product.id ?? ""
+                            productWithBoxes.product.id ?? ""
                           );
 
                           setIsDialogOpen(false);
                           toast.success(
-                            `Produto "${productWithBoxes?.product.name}" excluído com sucesso!`
+                            `Produto "${productWithBoxes.product.name}" excluído com sucesso!`
                           );
                           navigate("/products");
                         }}
@@ -171,7 +171,7 @@ const ProductPage = () => {
             <div className="flex flex-col md:flex-row w-full gap-8">
               {/* Imagem */}
               <div className="w-64 h-64 bg-gray-300 rounded-md overflow-hidden">
-                {productWithBoxes?.product.image ? (
+                {productWithBoxes.product.image ? (
                   <img
                     src={productWithBoxes.product.image}
                     alt={productWithBoxes.product.name}
@@ -189,20 +189,20 @@ const ProductPage = () => {
               {/* Informações do produto */}
               <div className="flex-1 space-y-3 text-left">
                 <p>
-                  <strong>Nome:</strong> {productWithBoxes?.product.name}
+                  <strong>Nome:</strong> {productWithBoxes.product.name}
                 </p>
                 <p>
                   <strong>Código de Barras:</strong>{" "}
-                  {formatBarCode(productWithBoxes?.product.barCode || "N/A")}
+                  {formatBarCode(productWithBoxes.product.barCode || "N/A")}
                 </p>
                 <p className="flex items-start gap-2">
                   <strong>Categoria:</strong>{" "}
-                  {productWithBoxes?.product.category?.name || "Sem categoria"}{" "}
+                  {productWithBoxes.product.category?.name || "Sem categoria"}{" "}
                   <button
                     className="flex p-0 m-0"
                     onClick={() =>
                       navigate(
-                        `/category/${productWithBoxes?.product.category?.id}`
+                        `/category/${productWithBoxes.product.category?.id}`
                       )
                     }
                   >
@@ -211,21 +211,21 @@ const ProductPage = () => {
                 </p>
                 <p>
                   <strong>Preço Unitário:</strong>{" "}
-                  {formatMoney(productWithBoxes?.product.unitPrice || 0)}
+                  {formatMoney(productWithBoxes.product.unitPrice || 0)}
                 </p>
                 <p>
                   <strong>Estoque Unitário Disponível:</strong>{" "}
-                  {productWithBoxes?.product.stock || 0}
+                  {productWithBoxes.product.stock || 0}
                 </p>
                 <p>
                   <strong>Estoque Total Disponível:</strong>{" "}
-                  {productWithBoxes?.product.totalStock || 0}
+                  {productWithBoxes.product.totalStock || 0}
                 </p>
                 <p>
                   <strong>Valor Total:</strong>{" "}
                   {formatMoney(
-                    (productWithBoxes?.product.unitPrice || 0) *
-                      (productWithBoxes?.product.stock || 0)
+                    (productWithBoxes.product.unitPrice || 0) *
+                      (productWithBoxes.product.totalStock || 0)
                   )}
                 </p>
               </div>
@@ -234,7 +234,7 @@ const ProductPage = () => {
             {/* Lista de caixas */}
             <div className="w-full">
               <p className="font-bold text-xl mb-4">Caixas</p>
-              {productWithBoxes?.boxes.length === 0 ? (
+              {productWithBoxes.boxes.length === 0 ? (
                 <p className="text-center text-gray-500">
                   Nenhuma caixa encontrada para este produto.
                 </p>
@@ -252,7 +252,7 @@ const ProductPage = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {productWithBoxes?.boxes.map((box, index) => (
+                    {productWithBoxes.boxes.map((box, index) => (
                       <tr
                         key={index}
                         className={`text-center ${
