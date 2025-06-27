@@ -41,7 +41,6 @@ public class CategoryRepository(AppDbContext dbContext) : ICategoryRepository
     {
         var result = _categories.Update(entity);
         await dbContext.SaveChangesAsync();
-        dbContext.Entry(result.Entity).Collection(p => p.Products).Load();
         return result.Entity;
     }
 

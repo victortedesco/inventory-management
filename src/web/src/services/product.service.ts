@@ -1,4 +1,4 @@
-import Product from "@/models/product.model";
+import { Product, ProductWithBoxes} from "@/models/product.model";
 import { CreateProductRequest } from "@/requests/product-request.interfaces";
 
 const PRODUCT_API_URL =
@@ -52,9 +52,24 @@ export const getProductById: (id: string) => Promise<Product | null> = async (id
   if (response.status === 404) {
     return null;
   }
-  const data = await response.json();
-  return data as Product;
+  const data = await response.json()
+  return data.product as Product;
 };
+
+export const getProductWithBoxesById: (id: string) => Promise<ProductWithBoxes | null> = async (id) => {
+  const response = await fetch(`${PRODUCT_API_URL}/${id}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  });
+  if (response.status === 404) {
+    return null;
+  }
+  const data = await response.json()
+  return data as ProductWithBoxes;
+}
 
 export const createProduct: (request: CreateProductRequest) => Promise<Product | null> = async (request) => {
   const response = await fetch(`${PRODUCT_API_URL}`, {
@@ -104,3 +119,22 @@ export const deleteProduct: (id: string) => Promise<boolean> = async(id) => {
   }
   return true;
 }
+
+export const updateProductStock = async (productId: string, newStock: number) => {
+  const response = await fetch(`${PRODUCT_API_URL}/${productId}/stock`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+    body: JSON.stringify(newStock),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Erro ao atualizar estoque: ${response.status}`);
+  }
+
+  const data = await response.json();
+  return data;
+};
+

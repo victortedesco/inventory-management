@@ -9,7 +9,7 @@ import {
   PackageSearch,
   X,
 } from "lucide-react";
-import User, { maskCPF } from "@/models/user.model";
+import { maskCPF, User } from "@/models/user.model";
 import { decodeToken, logout } from "@/services/auth.service";
 import { getUserById } from "@/services/user.service";
 import { useNavigate } from "react-router";
@@ -21,11 +21,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import Product, { formatBarCode } from "@/models/product.model";
-import Box from "@/models/box.model";
-import { getAllBoxes } from "@/services/box.service";
-import { getAllProducts } from "@/services/product.service";
+import { formatBarCode, Product } from "@/models/product.model";
+import { getAllBoxes, updateBoxStock } from "@/services/box.service";
+import { getAllProducts, updateProductStock } from "@/services/product.service";
 import { Button } from "./ui/button";
+import { Box } from "@/models/box.model";
 
 type StockItem = ({ type: "product" } & Product) | ({ type: "box" } & Box);
 
@@ -44,7 +44,7 @@ export const SideBar = ({ isOpen, setIsOpen }: SideBarProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<StockItem[]>([]);
   const [selectedItem, setSelectedItem] = useState<StockItem | null>(null);
-  const [quantityChange, setQuantityChange] = useState(0);
+  const [quantityChange, setStockChange] = useState(0);
 
   useEffect(() => {
     const fetchUser = async (id: string) => {
@@ -110,19 +110,17 @@ export const SideBar = ({ isOpen, setIsOpen }: SideBarProps) => {
   const handleAdjustStock = () => {
     if (!selectedItem) return;
 
-    const newQuantity = selectedItem.quantity + quantityChange;
+    const newQuantity = quantityChange;
 
     if (selectedItem.type === "product") {
-      // Atualize estoque do produto
-      //updateProductStock(selectedItem.id, newQuantity);
+      updateProductStock(selectedItem.id, newQuantity);
     } else {
-      // Atualize estoque da caixa
-      //updateBoxStock(selectedItem.id, newQuantity);
+      updateBoxStock(selectedItem.id, newQuantity);
     }
 
     // Resetar
     setSelectedItem(null);
-    setQuantityChange(0);
+    setStockChange(0);
     setSearchQuery("");
     setMoveDialogOpen(false);
   };
@@ -266,7 +264,7 @@ export const SideBar = ({ isOpen, setIsOpen }: SideBarProps) => {
                     className="w-32 h-32 object-cover rounded-md border"
                   />
 
-                  <div className="flex-1 space-y-3">
+                  <div className="flex-1 space-y-1">
                     <div>
                       <p className="text-gray-700 font-semibold text-lg">
                         {selectedItem.name}
@@ -280,11 +278,14 @@ export const SideBar = ({ isOpen, setIsOpen }: SideBarProps) => {
                     </div>
 
                     {selectedItem.type === "product" && (
-                      <div className="text-sm text-gray-600">
-                        Categoria:{" "}
+                      <div className="text-sm flex flex-col text-gray-600">
                         <span className="font-medium text-gray-800">
+                          Categoria:{" "}
                           {selectedItem.category?.name || "Sem categoria"}
                         </span>
+                        <span className="font-medium text-gray-800">
+                          Estoque total: {selectedItem.totalStock} unidades
+                        </span>{" "}
                       </div>
                     )}
 
@@ -299,7 +300,7 @@ export const SideBar = ({ isOpen, setIsOpen }: SideBarProps) => {
                     <div className="text-sm text-gray-600">
                       Estoque atual:{" "}
                       <span className="font-medium text-gray-800">
-                        {selectedItem.quantity}
+                        {selectedItem.stock}
                       </span>{" "}
                       unidades
                     </div>
@@ -314,10 +315,10 @@ export const SideBar = ({ isOpen, setIsOpen }: SideBarProps) => {
                       <input
                         type="number"
                         id="quantity"
+                        min={-selectedItem.stock}
+                        max={999999}
                         value={quantityChange}
-                        onChange={(e) =>
-                          setQuantityChange(Number(e.target.value))
-                        }
+                        onChange={(e) => setStockChange(Number(e.target.value))}
                         className="w-24 border border-gray-300 rounded-md p-1 text-center"
                       />
                     </div>

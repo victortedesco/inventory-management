@@ -11,12 +11,19 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { AuditLog } from "@/models/auditlog.model";
-import Product, { formatBarCode, formatMoney } from "@/models/product.model";
+import {
+  ProductWithBoxes,
+  formatBarCode,
+  formatMoney,
+} from "@/models/product.model";
 import { getAuditLogsByEntityId } from "@/services/audit-log.service";
 import { decodeToken } from "@/services/auth.service";
-import { deleteProduct, getProductById } from "@/services/product.service";
+import {
+  deleteProduct,
+  getProductWithBoxesById,
+} from "@/services/product.service";
 import { getRolesWhoCanEdit } from "@/services/user.service";
-import { Eye, Menu, Trash } from "lucide-react";
+import { Eye, Menu, Pencil } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
@@ -28,7 +35,7 @@ const ProductPage = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [productId, setProductId] = useState<string | null>(null);
-  const [product, setProduct] = useState<Product>();
+  const [productWithBoxes, setProductWithBoxes] = useState<ProductWithBoxes>();
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
   const [auditlogs, setAuditLogs] = useState<AuditLog[]>([]);
 
@@ -50,13 +57,13 @@ const ProductPage = () => {
       const canEdit = await getRolesWhoCanEdit();
       setCanEdit(canEdit.includes(decodedToken!.role));
       if (productId) {
-        const product = await getProductById(productId);
+        const product = await getProductWithBoxesById(productId);
         if (!product) {
           toast.error("Produto não encontrado");
           navigate("/products");
           return;
         }
-        setProduct(product);
+        setProductWithBoxes(product);
         const auditLogs = await getAuditLogsByEntityId(productId);
         setAuditLogs(auditLogs);
         setLoading(false);
@@ -76,7 +83,7 @@ const ProductPage = () => {
   }
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex h-screen overflow-hidden">
       <div className="hidden md:block w-64 shrink-0">
         <SideBar isOpen={true} setIsOpen={setSidebarOpen} />
       </div>
@@ -113,7 +120,12 @@ const ProductPage = () => {
                 </Button>
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                   <DialogTrigger asChild>
-                    <Button variant="destructive" disabled={product?.quantity !== 0}>Excluir</Button>
+                    <Button
+                      variant="destructive"
+                      disabled={productWithBoxes?.product.stock !== 0}
+                    >
+                      Excluir
+                    </Button>
                   </DialogTrigger>
 
                   <DialogContent>
@@ -121,7 +133,8 @@ const ProductPage = () => {
                       <DialogTitle>Confirmar exclusão</DialogTitle>
                       <DialogDescription>
                         Tem certeza que deseja excluir o produto "
-                        {product?.name}"? Esta ação não pode ser desfeita.
+                        {productWithBoxes?.product.name}"? Esta ação não pode
+                        ser desfeita.
                       </DialogDescription>
                     </DialogHeader>
 
@@ -137,11 +150,13 @@ const ProductPage = () => {
                       <Button
                         variant="destructive"
                         onClick={async () => {
-                          await deleteProduct(product?.id ?? "");
+                          await deleteProduct(
+                            productWithBoxes?.product.id ?? ""
+                          );
 
                           setIsDialogOpen(false);
                           toast.success(
-                            `Produto "${product?.name}" excluído com sucesso!`
+                            `Produto "${productWithBoxes?.product.name}" excluído com sucesso!`
                           );
                           navigate("/products");
                         }}
@@ -156,10 +171,10 @@ const ProductPage = () => {
             <div className="flex flex-col md:flex-row w-full gap-8">
               {/* Imagem */}
               <div className="w-64 h-64 bg-gray-300 rounded-md overflow-hidden">
-                {product?.image ? (
+                {productWithBoxes?.product.image ? (
                   <img
-                    src={product.image}
-                    alt={product.name}
+                    src={productWithBoxes.product.image}
+                    alt={productWithBoxes.product.name}
                     className="w-full h-full object-cover object-center"
                   />
                 ) : (
@@ -174,19 +189,21 @@ const ProductPage = () => {
               {/* Informações do produto */}
               <div className="flex-1 space-y-3 text-left">
                 <p>
-                  <strong>Nome:</strong> {product?.name}
+                  <strong>Nome:</strong> {productWithBoxes?.product.name}
                 </p>
                 <p>
                   <strong>Código de Barras:</strong>{" "}
-                  {formatBarCode(product?.barCode || "N/A")}
+                  {formatBarCode(productWithBoxes?.product.barCode || "N/A")}
                 </p>
                 <p className="flex items-start gap-2">
                   <strong>Categoria:</strong>{" "}
-                  {product?.category?.name || "Sem categoria"}{" "}
+                  {productWithBoxes?.product.category?.name || "Sem categoria"}{" "}
                   <button
                     className="flex p-0 m-0"
                     onClick={() =>
-                      navigate(`/category/${product?.category?.id}`)
+                      navigate(
+                        `/category/${productWithBoxes?.product.category?.id}`
+                      )
                     }
                   >
                     <Eye size={24} />
@@ -194,20 +211,91 @@ const ProductPage = () => {
                 </p>
                 <p>
                   <strong>Preço Unitário:</strong>{" "}
-                  {formatMoney(product?.unitPrice || 0)}
+                  {formatMoney(productWithBoxes?.product.unitPrice || 0)}
                 </p>
                 <p>
-                  <strong>Estoque Disponível:</strong> {product?.quantity || 0}
+                  <strong>Estoque Unitário Disponível:</strong>{" "}
+                  {productWithBoxes?.product.stock || 0}
+                </p>
+                <p>
+                  <strong>Estoque Total Disponível:</strong>{" "}
+                  {productWithBoxes?.product.totalStock || 0}
                 </p>
                 <p>
                   <strong>Valor Total:</strong>{" "}
                   {formatMoney(
-                    (product?.unitPrice || 0) * (product?.quantity || 0)
+                    (productWithBoxes?.product.unitPrice || 0) *
+                      (productWithBoxes?.product.stock || 0)
                   )}
                 </p>
               </div>
             </div>
 
+            {/* Lista de caixas */}
+            <div className="w-full">
+              <p className="font-bold text-xl mb-4">Caixas</p>
+              {productWithBoxes?.boxes.length === 0 ? (
+                <p className="text-center text-gray-500">
+                  Nenhuma caixa encontrada para este produto.
+                </p>
+              ) : (
+                <table className="min-w-full bg-white text-lg md:text-base">
+                  <thead className="bg-color-3 text-black border border-black ">
+                    <tr>
+                      <th className="px-4 py-3">Nome</th>
+                      <th className="px-4 py-3">Preço Base</th>
+                      <th className="px-4 py-3">Preço Final</th>
+                      <th className="px-4 py-3">Estoque</th>
+                      <th className="px-4 py-3">Dimensões (cm)</th>
+                      <th className="px-4 py-3">Peso (kg)</th>
+                      <th className="px-4 py-3">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {productWithBoxes?.boxes.map((box, index) => (
+                      <tr
+                        key={index}
+                        className={`text-center ${
+                          index % 2 === 0 ? "bg-color-1" : "bg-color-2"
+                        }`}
+                      >
+                        <td className="border border-black px-4 py-3">
+                          {box.name}
+                        </td>
+                        <td className="border border-black px-4 py-3">
+                          {formatMoney(box.unitPrice)}
+                        </td>
+                        <td className="border border-black px-4 py-3">
+                          {formatMoney(
+                            box.unitPrice * (1 - box.discount / 100)
+                          )}
+                        </td>
+                        <td className="border border-black px-4 py-3">
+                          {box.stock}
+                        </td>
+                        <td className="border border-black px-4 py-3">
+                          {`${box.depth} x ${box.height} x ${box.width}`}
+                        </td>
+                        <td className="border border-black px-4 py-3">
+                          {box.weight} kg
+                        </td>
+                        <td className="border border-black gap-x-2 px-4 py-3">
+                          <button onClick={() => navigate(`/box/${box.id}`)}>
+                            <Eye size={32} />
+                          </button>
+                          <button
+                            className={canEdit ? `` : `hidden`}
+                            onClick={() => navigate(`/box/edit/${box.id}`)}
+                          >
+                            <Pencil size={32} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
             {/* Histórico (abaixo) */}
             <AuditLogHistory
               isSpecific={true}

@@ -7,11 +7,12 @@ public class BoxViewModel
     public string Name { get; set; }
     public decimal Discount { get; set; }
     public decimal UnitPrice { get; set; }
-    public uint Quantity { get; set; }
+    public uint Stock { get; set; }
     public float Weight { get; set; }
     public float Depth { get; set; }
     public float Height { get; set; }
     public float Width { get; set; }
-    public int ProductCount { get; set; }
-    public int UniqueProductCount { get; set; }
+    public IEnumerable<ProductInBoxViewModel> Products { get; set; } = [];
+    public int ProductCount => Products.Sum(p => (int)p.Quantity);
+    public int UniqueProductCount => Products.Count();
 }

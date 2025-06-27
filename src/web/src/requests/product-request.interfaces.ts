@@ -1,18 +1,18 @@
 export interface CreateProductRequest {
   name: string;
   image: string;
-  barcode: string
+  barCode: string
   categoryId: string
   unitPrice: number
-  quantity: number
+  stock: number
 }
 
 export interface UpdateProductRequest {
   id: string;
   name: string;
   image: string;
-  barcode: string
+  barCode: string
   categoryId: string
   unitPrice: number
-  quantity: number
+  stock: number
 }

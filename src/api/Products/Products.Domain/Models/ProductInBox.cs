@@ -1,6 +1,6 @@
 ﻿namespace Products.Domain.Models;
 
-public class ProductInBox : IEntity<Guid>
+public class ProductInBox
 {
     public Guid ProductId { get; set; }
     public Product Product { get; set; }

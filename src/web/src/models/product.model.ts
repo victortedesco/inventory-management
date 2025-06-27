@@ -1,13 +1,27 @@
-import Category from "./category.model";
+import { Box } from "./box.model";
+import { Category } from "./category.model";
 
-export default interface Product {
+export interface Product {
   id: string;
   name: string;
   image: string;
   unitPrice: number;
-  quantity: number;
+  stock: number;
+  totalStock: number;
   barCode: string;
   category: Category;
+}
+
+export interface ProductWithBoxes {
+  product: Product;
+  boxes: Box[];
+}
+
+export interface ProductInBox {
+  boxId: string;
+  productId: string;
+  quantity: number;
+  product: Product;
 }
 
 export const formatMoney = (value: number): string => {
@@ -17,7 +31,8 @@ export const formatMoney = (value: number): string => {
 
 export const formatBarCode = (codigo: string): string => {
   if (!/^\d{13}$/.test(codigo)) {
-    throw new Error("O código de barras deve conter exatamente 13 dígitos numéricos.");
+    console.error("O código de barras deve conter exatamente 13 dígitos numéricos.");
+    return codigo;
   }
 
   return `${codigo.slice(0, 1)}|${codigo.slice(1, 7)}|${codigo.slice(7, 13)}`;

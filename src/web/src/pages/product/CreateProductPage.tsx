@@ -1,6 +1,7 @@
 import { SideBar } from "@/components/SideBar";
-import Category from "@/models/category.model";
-import Product from "@/models/product.model";
+import { Button } from "@/components/ui/button";
+import { Category } from "@/models/category.model";
+import { Product } from "@/models/product.model";
 import {
   CreateProductRequest,
   UpdateProductRequest,
@@ -30,10 +31,10 @@ const CreateProductPage = () => {
 
   const [formData, setFormData] = useState({
     name: "",
-    quantity: "",
+    stock: "",
     unitPrice: "",
     category: "",
-    barcode: "",
+    barCode: "",
     image: "",
   });
 
@@ -71,10 +72,10 @@ const CreateProductPage = () => {
         setProduct(product);
         setFormData({
           name: product.name || "",
-          quantity: product.quantity.toString(),
+          stock: product.stock.toString(),
           unitPrice: product.unitPrice.toString(),
           category: product.category?.id || "",
-          barcode: product.barCode || "",
+          barCode: product.barCode || "",
           image: product.image || "",
         });
       }
@@ -120,10 +121,10 @@ const CreateProductPage = () => {
         const request: CreateProductRequest = {
           name: formData.name,
           image: formData.image,
-          barcode: formData.barcode,
+          barCode: formData.barCode,
           categoryId: formData.category.toString(),
           unitPrice: Number(formData.unitPrice),
-          quantity: Number(formData.quantity),
+          stock: Number(formData.stock),
         };
         await createProduct(request);
       } else {
@@ -131,10 +132,10 @@ const CreateProductPage = () => {
           id: productId,
           name: formData.name,
           image: formData.image,
-          barcode: formData.barcode,
+          barCode: formData.barCode,
           categoryId: formData.category.toString(),
           unitPrice: Number(formData.unitPrice),
-          quantity: Number(formData.quantity),
+          stock: Number(formData.stock),
         };
         await updateProduct(productId, request);
       }
@@ -206,8 +207,8 @@ const CreateProductPage = () => {
                 step="1"
                 min="0"
                 max="999999"
-                placeholder="Quantidade"
-                value={formData.quantity}
+                placeholder="Estoque (unidades)"
+                value={formData.stock}
                 onChange={handleChange}
                 className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
                 required
@@ -245,11 +246,11 @@ const CreateProductPage = () => {
 
               <input
                 type="text"
-                name="barcode"
+                name="barCode"
                 pattern="\d{13}"
                 maxLength={13}
                 placeholder="Código de Barras"
-                value={formData.barcode}
+                value={formData.barCode}
                 onChange={handleChange}
                 className="border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
                 required
@@ -267,11 +268,19 @@ const CreateProductPage = () => {
                   />
                 </label>
                 {formData.image && (
-                  <img
-                    src={formData.image}
-                    alt="Preview"
-                    className="h-24 mt-2 object-cover rounded"
-                  />
+                  <div className="flex flex-col justify-between text-center text-gray-500">
+                    <img
+                      src={formData.image}
+                      alt="Preview"
+                      className="h-24 mt-2 object-cover rounded"
+                    />
+                    <Button
+                      onClick={() => setFormData({ ...formData, image: "" })}
+                      variant="destructive"
+                    >
+                      Remover Imagem
+                    </Button>
+                  </div>
                 )}
               </div>
 

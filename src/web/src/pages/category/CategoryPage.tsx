@@ -11,17 +11,16 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { AuditLog } from "@/models/auditlog.model";
-import Category from "@/models/category.model";
-import Product, { formatBarCode, formatMoney } from "@/models/product.model";
+import { Category } from "@/models/category.model";
+import { Product, formatMoney, formatBarCode } from "@/models/product.model";
 import { getAuditLogsByEntityId } from "@/services/audit-log.service";
 import { decodeToken } from "@/services/auth.service";
 import { deleteCategory, getCategoryById } from "@/services/category.service";
 import {
-  deleteProduct,
   getAllProductsByCategoryId,
 } from "@/services/product.service";
 import { getRolesWhoCanEdit } from "@/services/user.service";
-import { Eye, Menu, Pencil, Trash } from "lucide-react";
+import { Eye, Menu, Pencil } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
@@ -32,7 +31,6 @@ const CategoryPage = () => {
 
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
-  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
   const [categoryId, setCategoryId] = useState<string | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [category, setCategory] = useState<Category>();
@@ -78,7 +76,7 @@ const CategoryPage = () => {
   }
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex h-screen overflow-hidden">
       <div className="hidden md:block w-64 shrink-0">
         <SideBar isOpen={true} setIsOpen={setSidebarOpen} />
       </div>
@@ -102,61 +100,66 @@ const CategoryPage = () => {
           <main className="w-full p-4">
             <div className="flex flex-col text-xl mb-4">
               <div className="flex items-center justify-between w-full">
-              <p className="font-bold text-xl">Categoria</p>
-              <div className={!canEdit ? "hidden" : "flex gap-2"}>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    navigate("/category/edit/" + categoryId);
-                  }}
-                >
-                  Editar
-                </Button>
-                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button variant="destructive" disabled={category?.productCount !== 0}>Excluir</Button>
-                  </DialogTrigger>
-
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Confirmar exclusão</DialogTitle>
-                      <DialogDescription>
-                        Tem certeza que deseja excluir a categoria "
-                        {category?.name}"? Esta ação não pode ser desfeita.
-                      </DialogDescription>
-                    </DialogHeader>
-
-                    <DialogFooter>
-                      <Button
-                        variant="secondary"
-                        onClick={() => {
-                          setIsDialogOpen(false);
-                        }}
-                      >
-                        Cancelar
-                      </Button>
+                <p className="font-bold text-xl">Categoria</p>
+                <div className={!canEdit ? "hidden" : "flex gap-2"}>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      navigate("/category/edit/" + categoryId);
+                    }}
+                  >
+                    Editar
+                  </Button>
+                  <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                    <DialogTrigger asChild>
                       <Button
                         variant="destructive"
-                        onClick={async () => {
-                          await deleteCategory(category?.id ?? "");
-
-                          setIsDialogOpen(false);
-                          toast.success(
-                            `Categoria "${category?.name}" excluída com sucesso!`
-                          );
-                          navigate("/categories");
-                        }}
+                        disabled={category?.productCount !== 0}
                       >
-                        Confirmar
+                        Excluir
                       </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
+                    </DialogTrigger>
+
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Confirmar exclusão</DialogTitle>
+                        <DialogDescription>
+                          Tem certeza que deseja excluir a categoria "
+                          {category?.name}"? Esta ação não pode ser desfeita.
+                        </DialogDescription>
+                      </DialogHeader>
+
+                      <DialogFooter>
+                        <Button
+                          variant="secondary"
+                          onClick={() => {
+                            setIsDialogOpen(false);
+                          }}
+                        >
+                          Cancelar
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          onClick={async () => {
+                            await deleteCategory(category?.id ?? "");
+
+                            setIsDialogOpen(false);
+                            toast.success(
+                              `Categoria "${category?.name}" excluída com sucesso!`
+                            );
+                            navigate("/categories");
+                          }}
+                        >
+                          Confirmar
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </div>
               </div>
-            </div>
               <p>Nome: {category?.name}</p>
-              <p>Valor total: {formatMoney(category?.value ?? 0)}</p>
-              <p>Estoque disponível: {category?.totalStock}</p>
+              <p>Valor Total: {formatMoney(category?.value ?? 0)}</p>
+              <p>Estoque Disponível: {category?.totalStock}</p>
             </div>
             <div>
               <div className="mb-4">
@@ -193,7 +196,7 @@ const CategoryPage = () => {
                                 />
                               ) : (
                                 <img
-                                  src="no-image.png"
+                                  src="/no-image.png"
                                   alt="Imagem não disponível"
                                   className="h-16 object-cover rounded"
                                 />
@@ -204,13 +207,16 @@ const CategoryPage = () => {
                             product.name
                           } (${formatBarCode(product.barCode)})`}</td>
                           <td className="border border-black px-4 py-3">
-                            {product.quantity}
+                            {product.stock}
+                          </td>
+                          <td className="border border-black px-4 py-3">
+                            {product.totalStock}
                           </td>
                           <td className="border border-black px-4 py-3">
                             {formatMoney(product.unitPrice)}
                           </td>
                           <td className="border border-black px-4 py-3">
-                            {formatMoney(product.unitPrice * product.quantity)}
+                            {formatMoney(product.unitPrice * product.totalStock)}
                           </td>
                           <td className="border border-black gap-x-2 px-4 py-3">
                             <button
@@ -226,60 +232,6 @@ const CategoryPage = () => {
                             >
                               <Pencil size={32} />
                             </button>
-                            <Dialog
-                              open={isDialogOpen}
-                              onOpenChange={setIsDialogOpen}
-                            >
-                              <DialogTrigger asChild>
-                                <button
-                                  className={canEdit ? `` : `hidden`}
-                                  disabled={product.quantity !== 0}
-                                  onClick={() => setProductToDelete(product)}
-                                >
-                                  <Trash size={32} />
-                                </button>
-                              </DialogTrigger>
-
-                              <DialogContent>
-                                <DialogHeader>
-                                  <DialogTitle>Confirmar exclusão</DialogTitle>
-                                  <DialogDescription>
-                                    Tem certeza que deseja excluir o produto "
-                                    {productToDelete?.name}"? Esta ação não pode
-                                    ser desfeita.
-                                  </DialogDescription>
-                                </DialogHeader>
-
-                                <DialogFooter>
-                                  <Button
-                                    variant="secondary"
-                                    onClick={() => {
-                                      setProductToDelete(null);
-                                      setIsDialogOpen(false);
-                                    }}
-                                  >
-                                    Cancelar
-                                  </Button>
-                                  <Button
-                                    variant="destructive"
-                                    onClick={async () => {
-                                      await deleteProduct(
-                                        productToDelete?.id || ""
-                                      );
-                                      setProducts((prev) =>
-                                        prev.filter(
-                                          (c) => c.id !== productToDelete?.id
-                                        )
-                                      );
-                                      setProductToDelete(null);
-                                      setIsDialogOpen(false);
-                                    }}
-                                  >
-                                    Confirmar
-                                  </Button>
-                                </DialogFooter>
-                              </DialogContent>
-                            </Dialog>
                           </td>
                         </tr>
                       ))}

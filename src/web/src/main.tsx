@@ -15,6 +15,8 @@ import CategoryPage from "./pages/category/CategoryPage.tsx";
 import ProductPage from "./pages/product/ProductPage.tsx";
 import ListBoxesPage from "./pages/box/ListBoxesPage.tsx";
 import ListHistoryPage from "./pages/history/ListHistoryPage.tsx";
+import CreateBoxPage from "./pages/box/CreateBoxPage.tsx";
+import BoxPage from "./pages/box/BoxPage.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <>
@@ -35,6 +37,9 @@ createRoot(document.getElementById("root")!).render(
         <Route path="/category/edit/" element={<CreateCategoryPage />} />
         <Route path="/category/edit/:id" element={<CreateCategoryPage />} />
         <Route path="/boxes" element={<ListBoxesPage />} />
+        <Route path="/box/:id" element={<BoxPage />} />
+        <Route path="/box/edit/" element={<CreateBoxPage />} />
+        <Route path="/box/edit/:id" element={<CreateBoxPage />} />
         <Route path="/history" element={<ListHistoryPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>

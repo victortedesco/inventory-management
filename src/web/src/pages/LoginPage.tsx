@@ -21,7 +21,7 @@ const LoginPage = () => {
       if (!token) {
         return;
       }
-      navigate("/");
+      navigate("/products");
     } catch (err: any) {
       console.error(err);
     }

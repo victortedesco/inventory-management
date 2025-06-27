@@ -9,7 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import Box from "@/models/box.model";
+import {Box} from "@/models/box.model";
 import { formatMoney } from "@/models/product.model";
 import { decodeToken } from "@/services/auth.service";
 import { getAllBoxes, deleteBox } from "@/services/box.service";
@@ -37,13 +37,20 @@ const ListBoxesPage = () => {
   const [boxToDelete, setBoxToDelete] = useState<Box | null>(null);
   const [canEdit, setCanEdit] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
+  const [filteredBoxes, setFilteredBoxes] = useState<Box[]>([]);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [showFilterOptions, setShowFilterOptions] = useState<boolean>(false);
+  const [selectedFilter, setSelectedFilter] = useState<FilterOption>("name");
 
   useEffect(() => {
     const fetchData = async () => {
       const boxes = await getAllBoxes();
       setBoxes(boxes);
+      setFilteredBoxes(boxes);
+
       const decodedToken = decodeToken(localStorage.getItem("token"));
       const canEdit = await getRolesWhoCanEdit();
+
       setCanEdit(canEdit.includes(decodedToken!.role));
       setLoading(false);
     };
@@ -53,10 +60,26 @@ const ListBoxesPage = () => {
     fetchData().catch(console.error);
   }, [navigate]);
 
-  const totalBoxes = boxes.length;
+  useEffect(() => {
+  const filtered = boxes.filter((box) => {
+    const value = searchTerm.toLowerCase();
+    switch (selectedFilter) {
+      case "name":
+        return box.name.toLowerCase().includes(value);
+      case "totalStock":
+        return box.stock.toString().includes(value);
+      case "productCount":
+        return box.productCount.toString().includes(value);
+      case "value":
+        return box.unitPrice.toString().includes(value);
+      default:
+        return true;
+    }
+  });
+  setFilteredBoxes(filtered);
+}, [searchTerm, selectedFilter, boxes]);
 
-  const [showFilterOptions, setShowFilterOptions] = useState<boolean>(false);
-  const [selectedFilter, setSelectedFilter] = useState<FilterOption>("name");
+  const totalBoxes = boxes.length;
 
   const handleFilterSelect = (filter: FilterOption) => {
     setSelectedFilter(filter);
@@ -115,6 +138,8 @@ const ListBoxesPage = () => {
                 <input
                   type="text"
                   placeholder="Pesquisar por..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                   className="border p-1.5 rounded text-base w-full sm:w-50"
                 />
                 <div className="relative inline-block text-left">
@@ -186,14 +211,14 @@ const ListBoxesPage = () => {
                   <th className="px-4 py-3">Nome</th>
                   <th className="px-4 py-3">Preço Base</th>
                   <th className="px-4 py-3">Preço Final</th>
-                  <th className="px-4 py-3">Quantidade</th>
+                  <th className="px-4 py-3">Estoque</th>
                   <th className="px-4 py-3">Dimensões (cm)</th>
                   <th className="px-4 py-3">Peso (kg)</th>
                   <th className="px-4 py-3">Ações</th>
                 </tr>
                 </thead>
                 <tbody>
-                  {boxes.map((box, index) => (
+                  {filteredBoxes.map((box, index) => (
                     <tr
                       key={index}
                       className={`text-center ${
@@ -210,7 +235,7 @@ const ListBoxesPage = () => {
                         {formatMoney(box.unitPrice * (1 - box.discount / 100))}
                       </td>
                       <td className="border border-black px-4 py-3">
-                        {box.quantity}
+                        {box.stock}
                       </td>
                       <td className="border border-black px-4 py-3">
                         {`${box.depth} x ${box.height} x ${box.width}`}

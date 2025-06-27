@@ -69,7 +69,7 @@ namespace Products.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Barcode")
+                    b.Property<string>("BarCode")
                         .HasColumnType("text");
 
                     b.Property<float>("Depth")
@@ -86,7 +86,7 @@ namespace Products.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<long>("Quantity")
+                    b.Property<long>("Stock")
                         .HasColumnType("bigint");
 
                     b.Property<float>("Weight")
@@ -128,7 +128,7 @@ namespace Products.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("Barcode")
+                    b.Property<string>("BarCode")
                         .IsRequired()
                         .HasMaxLength(13)
                         .HasColumnType("character varying(13)");
@@ -145,7 +145,7 @@ namespace Products.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
-                    b.Property<long>("Quantity")
+                    b.Property<long>("Stock")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
                         .HasDefaultValue(0L);
@@ -157,7 +157,7 @@ namespace Products.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Barcode")
+                    b.HasIndex("BarCode")
                         .IsUnique();
 
                     b.HasIndex("CategoryId");
@@ -174,9 +174,6 @@ namespace Products.Infrastructure.Migrations
                         .HasColumnType("uuid");
 
                     b.Property<Guid>("BoxId")
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("Id")
                         .HasColumnType("uuid");
 
                     b.Property<long>("Quantity")
@@ -207,7 +204,7 @@ namespace Products.Infrastructure.Migrations
                         .IsRequired();
 
                     b.HasOne("Products.Domain.Models.Product", "Product")
-                        .WithMany()
+                        .WithMany("ProductInBoxes")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -225,6 +222,11 @@ namespace Products.Infrastructure.Migrations
             modelBuilder.Entity("Products.Domain.Models.Category", b =>
                 {
                     b.Navigation("Products");
+                });
+
+            modelBuilder.Entity("Products.Domain.Models.Product", b =>
+                {
+                    b.Navigation("ProductInBoxes");
                 });
 #pragma warning restore 612, 618
         }

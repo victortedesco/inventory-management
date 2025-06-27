@@ -1,7 +1,7 @@
 import { SideBar } from "@/components/SideBar";
 import { Button } from "@/components/ui/button";
 import { DialogHeader, DialogFooter } from "@/components/ui/dialog";
-import Product, { formatBarCode, formatMoney } from "@/models/product.model";
+import { Product, formatBarCode, formatMoney } from "@/models/product.model";
 import { decodeToken } from "@/services/auth.service";
 import { deleteProduct, getAllProducts } from "@/services/product.service";
 import { getRolesWhoCanEdit } from "@/services/user.service";
@@ -36,14 +36,21 @@ const ListProductsPage = () => {
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
   const [canEdit, setCanEdit] = useState<boolean>(true);
   const [loading, setLoading] = useState<boolean>(true);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [showFilterOptions, setShowFilterOptions] = useState<boolean>(false);
+  const [selectedFilter, setSelectedFilter] = useState<FilterOption>("name");
+  
 
   useEffect(() => {
     const fetchData = async () => {
       const decodedToken = decodeToken(localStorage.getItem("token"));
       const canEdit = await getRolesWhoCanEdit();
       setCanEdit(canEdit.includes(decodedToken!.role));
+
       const products = await getAllProducts();
       setProducts(products);
+      setFilteredProducts(products);
       setLoading(false);
     };
     const token = localStorage.getItem("token");
@@ -53,12 +60,29 @@ const ListProductsPage = () => {
 
   const totalProducts = products.length;
   const totalStock = products.reduce(
-    (sum, product) => sum + product.quantity,
+    (sum, product) => sum + product.stock,
     0
   );
 
-  const [showFilterOptions, setShowFilterOptions] = useState<boolean>(false);
-  const [selectedFilter, setSelectedFilter] = useState<FilterOption>("name");
+  useEffect(() => {
+  const filtered = products.filter((product) => {
+    const value = searchTerm.toLowerCase();
+    switch (selectedFilter) {
+      case "name":
+        return product.name.toLowerCase().includes(value);
+      case "category":
+        return product.category?.name?.toLowerCase().includes(value);
+      case "quantity":
+        return product.stock.toString().includes(value);
+      case "price":
+        return product.unitPrice.toString().includes(value);
+      default:
+        return true;
+    }
+  });
+  setFilteredProducts(filtered);
+}, [searchTerm, selectedFilter, products]);
+
 
   const handleFilterSelect = (filter: FilterOption) => {
     setSelectedFilter(filter);
@@ -120,6 +144,8 @@ const ListProductsPage = () => {
                 <input
                   type="text"
                   placeholder="Pesquisar por..."
+                  value = {searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                   className="border p-1.5 rounded text-base w-full sm:w-50"
                 />
                 <div className="relative inline-block text-left">
@@ -153,7 +179,7 @@ const ListProductsPage = () => {
                           className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
                           onClick={() => handleFilterSelect("quantity")}
                         >
-                          Quantidade
+                          Estoque
                         </li>
                         <li
                           className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
@@ -191,14 +217,15 @@ const ListProductsPage = () => {
                     <th className="px-4 py-3">Imagem</th>
                     <th className="px-4 py-3">Nome (Código de Barras)</th>
                     <th className="px-4 py-3">Categoria</th>
-                    <th className="px-4 py-3">Estoque</th>
+                    <th className="px-4 py-3">Estoque Unitário</th>
+                    <th className="px-4 py-3">Estoque Total</th>
                     <th className="px-4 py-3">Preço Unitário</th>
                     <th className="px-4 py-3">Valor Total</th>
                     <th className="px-4 py-3">Ações</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {products.map((product, index) => (
+                  {filteredProducts.map((product, index) => (
                     <tr
                       key={index}
                       className={`text-center ${
@@ -231,13 +258,16 @@ const ListProductsPage = () => {
                           : "Sem categoria"}
                       </td>
                       <td className="border border-black  px-4 py-3">
-                        {product.quantity}
+                        {product.stock}
+                      </td>
+                      <td className="border border-black  px-4 py-3">
+                        {product.totalStock}
                       </td>
                       <td className="border border-black  px-4 py-3">
                         {formatMoney(product.unitPrice)}
                       </td>
                       <td className="border border-black  px-4 py-3">
-                        {formatMoney(product.unitPrice * product.quantity)}
+                        {formatMoney(product.unitPrice * product.totalStock)}
                       </td>
                       <td className={`border border-black  gap-x-2 px-4 py-3`}>
                         <button
@@ -260,7 +290,7 @@ const ListProductsPage = () => {
                           <DialogTrigger asChild>
                             <button
                               className={canEdit ? `` : `hidden`}
-                              disabled={product.quantity !== 0}
+                              disabled={product.totalStock !== 0}
                               onClick={() => setProductToDelete(product)}
                             >
                               <Trash size={32} />

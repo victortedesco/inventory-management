@@ -13,22 +13,14 @@ internal class ProductInBoxEntityConfiguration : IEntityTypeConfiguration<Produc
         builder.HasKey(pib => new { pib.ProductId, pib.BoxId });
 
         builder.HasOne(pib => pib.Product)
-            .WithMany()
-            .HasForeignKey(pib => pib.ProductId);
+            .WithMany(p => p.ProductInBoxes)
+            .HasForeignKey(pib => pib.ProductId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne(pib => pib.Box)
             .WithMany(b => b.Products)
-            .HasForeignKey(pib => pib.BoxId);
-
-        builder.HasOne(pib => pib.Product)
-        .WithMany()
-        .HasForeignKey(pib => pib.ProductId)
-        .OnDelete(DeleteBehavior.Cascade);
-
-        builder.HasOne(pib => pib.Box)
-         .WithMany(b => b.Products)
-         .HasForeignKey(pib => pib.BoxId)
-         .OnDelete(DeleteBehavior.Cascade);
+            .HasForeignKey(pib => pib.BoxId)
+            .OnDelete(DeleteBehavior.Cascade);
 
     }
 }

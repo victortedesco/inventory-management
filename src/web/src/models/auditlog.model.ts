@@ -19,7 +19,7 @@ export const fieldTranslations: Record<string, string> = {
   barcode: 'Código de Barras',
   discount: 'Desconto',
   unitprice: 'Preço Unitário',
-  quantity: 'Quantidade',
+  stock: 'Estoque',
   weight: 'Peso',
   depth: 'Profundidade',
   height: 'Altura',

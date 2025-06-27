@@ -5,5 +5,5 @@ namespace Products.Infrastructure.Services.Interfaces;
 public interface IProductService : IService<Guid, ProductDTO>
 {
     Task<IEnumerable<ProductDTO>> GetByCategoryIdAsync(Guid categoryId, int skip, int take, string name);
-    Task<ProductDTO> UpdateQuantityAsync(Guid guid, int quantity);
+    Task<ProductDTO> UpdateStockAsync(Guid guid, uint stock);
 }

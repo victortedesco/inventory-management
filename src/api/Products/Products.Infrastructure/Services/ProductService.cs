@@ -41,7 +41,7 @@ public class ProductService(IProductRepository productRepository, ICategoryRepos
         {
             errors.Add("Unit price must be greater than zero");
         }
-        if (entity.Quantity < 0)
+        if (entity.Stock < 0)
         {
             errors.Add("Quantity cannot be negative");
         }
@@ -57,8 +57,8 @@ public class ProductService(IProductRepository productRepository, ICategoryRepos
             Name = entity.Name,
             Image = entity.Image,
             UnitPrice = entity.UnitPrice,
-            Quantity = entity.Quantity,
-            Barcode = entity.Barcode,
+            Stock = entity.Stock,
+            BarCode = entity.BarCode,
             Category = category,
         };
         var createdProduct = await _productRepository.CreateAsync(product);
@@ -82,7 +82,7 @@ public class ProductService(IProductRepository productRepository, ICategoryRepos
         {
             errors.Add("Unit price must be greater than zero");
         }
-        if (entity.Quantity < 0)
+        if (entity.Stock < 0)
         {
             errors.Add("Quantity cannot be negative");
         }
@@ -94,8 +94,8 @@ public class ProductService(IProductRepository productRepository, ICategoryRepos
 
         existingProduct.Name = entity.Name;
         existingProduct.Image = entity.Image;
-        existingProduct.Quantity = entity.Quantity;
-        existingProduct.Barcode = entity.Barcode;
+        existingProduct.Stock = entity.Stock;
+        existingProduct.BarCode = entity.BarCode;
         existingProduct.Category = category;
         existingProduct.UnitPrice = entity.UnitPrice;
 
@@ -106,19 +106,16 @@ public class ProductService(IProductRepository productRepository, ICategoryRepos
     public async Task<bool> DeleteAsync(Guid id)
     {
         var product = await _productRepository.GetByIdAsync(id);
-        if (product.Quantity != 0) return false;
+        if (product.Stock != 0) return false;
         return await _productRepository.DeleteAsync(id);
     }
 
-    public async Task<ProductDTO> UpdateQuantityAsync(Guid guid, int quantity)
+    public async Task<ProductDTO> UpdateStockAsync(Guid guid, uint stock)
     {
         var product = await _productRepository.GetByIdAsync(guid);
         if (product is null) return null;
 
-        int tempQuantity = (int)product.Quantity + quantity;
-        if (tempQuantity < 0) return null;
-
-        product.Quantity = (uint)tempQuantity;
+        product.Stock = Math.Max(0, stock);
 
         var updatedProduct = await _productRepository.UpdateAsync(product);
         return updatedProduct.ToDTO();

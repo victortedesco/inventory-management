@@ -12,8 +12,9 @@ public static class DTOExtensions
             Name = product.Name,
             Image = product.Image,
             UnitPrice = product.UnitPrice,
-            Barcode = product.Barcode,
-            Quantity = product.Quantity,
+            BarCode = product.BarCode,
+            Stock = product.Stock,
+            TotalStock = product.GetTotalStock(),
             Category = product.Category?.ToDTO()
         };
     }
@@ -29,9 +30,9 @@ public static class DTOExtensions
         {
             Id = category.Id,
             Name = category.Name,
-            TotalStock = (int)category.Products.Sum(p => p.Quantity),
+            TotalStock = (int)category.Products.Sum(p => p.Stock),
             ProductCount = category.Products.Count,
-            Value = category.Products.Sum(p => p.UnitPrice * p.Quantity),
+            Value = category.Products.Sum(p => p.UnitPrice * p.Stock),
         };
     }
 
@@ -45,16 +46,16 @@ public static class DTOExtensions
         return new BoxDTO
         {
             Id = box.Id,
-            Barcode = box.Barcode,
+            BarCode = box.BarCode,
             Name = box.Name,
             Discount = box.Discount,
             UnitPrice = box.Products.Select(b => b.Product).Sum(p => p.UnitPrice),
-            Quantity = box.Quantity,
+            Stock = box.Stock,
             Weight = box.Weight,
             Depth = box.Depth,
             Height = box.Height,
             Width = box.Width,
-            ProductCount = (int)box.Products.Sum(p => p.Quantity),
+            Products = box.Products.Select(bp => bp.ToDTO()).ToList()
         };
     }
 
@@ -83,5 +84,20 @@ public static class DTOExtensions
     public static IEnumerable<AuditLogDTO> ToDTO(this IEnumerable<AuditLog> auditLogs)
     {
         return auditLogs.Select(ToDTO);
+    }
+
+    public static ProductInBoxDTO ToDTO(this ProductInBox productInBox)
+    {
+        return new ProductInBoxDTO
+        {
+            Product = productInBox.Product.ToDTO(),
+            BoxId = productInBox.BoxId,
+            Quantity = productInBox.Quantity
+        };
+    }
+
+    public static IEnumerable<ProductInBoxDTO> ToDTO(this IEnumerable<ProductInBox> productInBoxes)
+    {
+        return productInBoxes.Select(ToDTO);
     }
 }

@@ -12,9 +12,10 @@ namespace Products.API.Controllers;
 [Authorize]
 [ApiController]
 [Route("api/v1/products")]
-public class ProductController(IProductService productService) : ControllerBase
+public class ProductController(IProductService productService, IBoxService boxService) : ControllerBase
 {
     private readonly IProductService _productService = productService;
+    private readonly IBoxService _boxService = boxService;
 
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -47,15 +48,16 @@ public class ProductController(IProductService productService) : ControllerBase
     [HttpGet("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(ProductViewModel), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProductWithBoxesViewModel), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetById(Guid id)
     {
         var product = await _productService.GetByIdAsync(id);
+        var boxes = await _boxService.GetByProductIdAsync(id, 0, 100, string.Empty);
 
         if (product is null)
             return NotFound();
 
-        return Ok(product.ToViewModel());
+        return Ok(product.ToViewModelWithBoxes(boxes));
     }
 
     [HttpPost]
@@ -73,10 +75,10 @@ public class ProductController(IProductService productService) : ControllerBase
         {
             Name = product.Name,
             Image = product.Image,
-            Barcode = product.Barcode,
+            BarCode = product.BarCode,
             Category = new CategoryDTO { Id = Guid.Parse(product.CategoryId) },
             UnitPrice = product.UnitPrice,
-            Quantity = product.Quantity,
+            Stock = product.Quantity,
         });
 
         if (result.IsFailed)
@@ -101,10 +103,10 @@ public class ProductController(IProductService productService) : ControllerBase
             Id = id,
             Name = product.Name,
             Image = product.Image,
-            Barcode = product.Barcode,
+            BarCode = product.BarCode,
             Category = new CategoryDTO { Id = Guid.Parse(product.CategoryId) },
             UnitPrice = product.UnitPrice,
-            Quantity = product.Quantity,
+            Stock = product.Stock,
         });
 
         if (result.IsFailed)
@@ -127,16 +129,16 @@ public class ProductController(IProductService productService) : ControllerBase
         return NoContent();
     }
 
-    [HttpPatch("{id:guid}/quantity")]
+    [HttpPatch("{id:guid}/stock")]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> UpdateQuantity(Guid id, [FromBody] int request)
+    public async Task<IActionResult> UpdateStock(Guid id, [FromBody] uint stock)
     {
         var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value;
         if (userId is null)
             return Unauthorized();
-        var result = await _productService.UpdateQuantityAsync(id, request);
+        var result = await _productService.UpdateStockAsync(id, stock);
         if (result == null)
             return BadRequest();
         return Ok(result.ToViewModel());

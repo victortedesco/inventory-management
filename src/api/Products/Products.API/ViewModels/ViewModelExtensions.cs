@@ -29,8 +29,9 @@ public static class ViewModelExtensions
             Name = product.Name,
             Image = product.Image,
             UnitPrice = product.UnitPrice,
-            BarCode = product.Barcode,
-            Quantity = product.Quantity,
+            BarCode = product.BarCode,
+            Stock = product.Stock,
+            TotalStock = product.TotalStock,
             Category = product.Category?.ToViewModel(),
         };
     }
@@ -40,22 +41,32 @@ public static class ViewModelExtensions
         return products.Select(ToViewModel);
     }
 
+    public static ProductWithBoxesViewModel ToViewModelWithBoxes(
+       this ProductDTO product,
+       IEnumerable<BoxDTO> boxes)
+    {
+        return new ProductWithBoxesViewModel
+        {
+            Product = product.ToViewModel(),
+            Boxes = boxes.ToViewModel()
+        };
+    }
+
     public static BoxViewModel ToViewModel(this BoxDTO box)
     {
         return new BoxViewModel
         {
             Id = box.Id,
-            BarCode = box.Barcode,
+            BarCode = box.BarCode,
             Name = box.Name,
             Discount = box.Discount,
             UnitPrice = box.UnitPrice,
-            Quantity = box.Quantity,
+            Stock = box.Stock,
             Weight = box.Weight,
             Depth = box.Depth,
             Height = box.Height,
             Width = box.Width,
-            ProductCount = box.ProductCount,
-            UniqueProductCount = box.UniqueProductCount,
+            Products = box.Products.Select(p => p.ToViewModel()).ToList(),
         };
     }
 
@@ -84,5 +95,20 @@ public static class ViewModelExtensions
     public static IEnumerable<AuditLogViewModel> ToViewModel(this IEnumerable<AuditLogDTO> auditLogs)
     {
         return auditLogs.Select(ToViewModel);
+    }
+
+    public static ProductInBoxViewModel ToViewModel(this ProductInBoxDTO productInBox)
+    {
+        return new ProductInBoxViewModel
+        {
+            BoxId = productInBox.BoxId,
+            ProductId = productInBox.Product.Id,
+            Quantity = productInBox.Quantity,
+            Product = productInBox.Product.ToViewModel()
+        };
+    }
+    public static IEnumerable<ProductInBoxViewModel> ToViewModel(this IEnumerable<ProductInBoxDTO> productsInBox)
+    {
+        return productsInBox.Select(ToViewModel);
     }
 }

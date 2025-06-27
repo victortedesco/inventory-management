@@ -17,12 +17,13 @@ public class ProductRepository(AppDbContext dbContext) : IProductRepository
             .Take(take)
             .Where(p => string.IsNullOrEmpty(name) || p.Name.ToLower().Contains(name.ToLower()))
             .Include(p => p.Category)
+            .Include(p => p.ProductInBoxes)
             .ToListAsync();
     }
 
     public async Task<Product> GetByIdAsync(Guid id)
     {
-        return await _products.Include(p => p.Category).FirstOrDefaultAsync(p => p.Id == id);
+        return await _products.Include(p => p.Category).Include(p => p.ProductInBoxes).FirstOrDefaultAsync(p => p.Id == id);
     }
 
     public async Task<IEnumerable<Product>> GetByCategoryIdAsync(Guid categoryId, int skip, int take, string name)
@@ -32,6 +33,7 @@ public class ProductRepository(AppDbContext dbContext) : IProductRepository
             .Skip(skip)
             .Take(take)
             .Include(p => p.Category)
+            .Include(p => p.ProductInBoxes)
             .Where(p => p.Category.Id == categoryId && (string.IsNullOrEmpty(name) || p.Name.ToLower().Contains(name.ToLower())))
             .ToListAsync();
     }
@@ -40,7 +42,6 @@ public class ProductRepository(AppDbContext dbContext) : IProductRepository
     {
         var result = await _products.AddAsync(entity);
         await dbContext.SaveChangesAsync();
-        dbContext.Entry(result.Entity).Reference(p => p.Category).Load();
         return result.Entity;
     }
 
@@ -48,7 +49,6 @@ public class ProductRepository(AppDbContext dbContext) : IProductRepository
     {
         var result = _products.Update(entity);
         await dbContext.SaveChangesAsync();
-        dbContext.Entry(result.Entity).Reference(p => p.Category).Load();
         return result.Entity;
     }
 

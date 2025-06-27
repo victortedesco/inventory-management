@@ -41,13 +41,20 @@ const ListCategoriesPage = () => {
   const [canEdit, setCanEdit] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [showFilterOptions, setShowFilterOptions] = useState<boolean>(false);
+  const [selectedFilter, setSelectedFilter] = useState<FilterOption>("name");
+  const [filteredCategories, setFilteredCategories] = useState<Category[]>([]);
+  const [searchTerm, setSearchTerm] = useState<string>("");
 
   useEffect(() => {
     const fetchData = async () => {
       const categories = await getAllCategories();
       setCategories(categories);
+      setFilteredCategories(categories);
+
       const decodedToken = decodeToken(localStorage.getItem("token"));
       const canEdit = await getRolesWhoCanEdit();
+
       setCanEdit(canEdit.includes(decodedToken!.role));
       setLoading(false);
     };
@@ -57,10 +64,26 @@ const ListCategoriesPage = () => {
     fetchData().catch(console.error);
   }, [navigate]);
 
-  const totalCategories = categories.length;
+  useEffect(() => {
+  const filtered = categories.filter((category) => {
+    const value = searchTerm.toLowerCase();
+    switch (selectedFilter) {
+      case "name":
+        return category.name.toLowerCase().includes(value);
+      case "totalStock":
+        return category.totalStock.toString().includes(value);
+      case "productCount":
+        return category.productCount.toString().includes(value);
+      case "value":
+        return category.value.toString().includes(value);
+      default:
+        return true;
+    }
+  });
+  setFilteredCategories(filtered);
+}, [searchTerm, selectedFilter, categories]);
 
-  const [showFilterOptions, setShowFilterOptions] = useState<boolean>(false);
-  const [selectedFilter, setSelectedFilter] = useState<FilterOption>("name");
+  const totalCategories = categories.length;
 
   const handleFilterSelect = (filter: FilterOption) => {
     setSelectedFilter(filter);
@@ -156,9 +179,9 @@ const ListCategoriesPage = () => {
                 <input
                   type="text"
                   placeholder="Pesquisar por..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                   className="border p-1.5 rounded text-base w-full sm:w-50"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
                 />
                 <div className="relative inline-block text-left">
                   <button
@@ -235,7 +258,7 @@ const ListCategoriesPage = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {categories.map((category, index) => (
+                  {filteredCategories.map((category, index) => (
                     <tr
                       key={index}
                       className={`text-center ${

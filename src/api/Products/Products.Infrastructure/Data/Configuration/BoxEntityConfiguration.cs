@@ -19,7 +19,7 @@ internal class BoxEntityConfiguration : IEntityTypeConfiguration<Box>
         builder.HasIndex(b => b.Name)
             .IsUnique();
 
-        builder.Property(b => b.Quantity)
+        builder.Property(b => b.Stock)
             .IsRequired();
 
         builder.Property(b => b.Discount)
@@ -39,7 +39,8 @@ internal class BoxEntityConfiguration : IEntityTypeConfiguration<Box>
             .IsRequired();
 
         builder.HasMany(b => b.Products)
-            .WithOne()
-            .OnDelete(DeleteBehavior.Cascade);
+    .WithOne(pib => pib.Box)
+    .HasForeignKey(pib => pib.BoxId)
+    .OnDelete(DeleteBehavior.Cascade);
     }
 }
