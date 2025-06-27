@@ -3,6 +3,7 @@
 public class UpdateBoxRequest
 {
     public Guid Id { get; set; }
+    public string BarCode { get; set; }
     public string Name { get; set; }
     public decimal Discount { get; set; }
     public decimal UnitPrice { get; set; }

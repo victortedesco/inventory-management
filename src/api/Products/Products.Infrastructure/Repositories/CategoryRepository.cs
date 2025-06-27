@@ -12,21 +12,22 @@ public class CategoryRepository(AppDbContext dbContext) : ICategoryRepository
     public async Task<IEnumerable<Category>> GetAllAsync(int skip, int take, string name)
     {
         return await _categories
-            .OrderByDescending(c => c.CreatedAt)
+            .OrderByDescending(c => c.Name)
             .Skip(skip)
             .Take(take)
+            .Include(c => c.Products)
             .Where(c => string.IsNullOrEmpty(name) || c.Name.ToLower().Contains(name.ToLower()))
             .ToListAsync();
     }
 
-    public async Task<Category> GetByIdAsync(int id)
+    public async Task<Category> GetByIdAsync(Guid id)
     {
-        return await _categories.FindAsync(id);
+        return await _categories.Include(c => c.Products).FirstOrDefaultAsync(c => c.Id == id);
     }
 
     public async Task<Category> GetByNameAsync(string name)
     {
-        return await _categories.FirstOrDefaultAsync(c => c.Name.ToLower() == name.ToLower());
+        return await _categories.Include(c => c.Products).FirstOrDefaultAsync(c => c.Name.ToLower() == name.ToLower());
     }
 
     public async Task<Category> CreateAsync(Category entity)
@@ -43,7 +44,7 @@ public class CategoryRepository(AppDbContext dbContext) : ICategoryRepository
         return result.Entity;
     }
 
-    public async Task<bool> DeleteAsync(int id)
+    public async Task<bool> DeleteAsync(Guid id)
     {
         var entity = await GetByIdAsync(id);
         if (entity is null)

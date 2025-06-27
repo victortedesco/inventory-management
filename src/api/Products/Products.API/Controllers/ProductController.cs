@@ -12,9 +12,10 @@ namespace Products.API.Controllers;
 [Authorize]
 [ApiController]
 [Route("api/v1/products")]
-public class ProductController(IProductService productService) : ControllerBase
+public class ProductController(IProductService productService, IBoxService boxService) : ControllerBase
 {
     private readonly IProductService _productService = productService;
+    private readonly IBoxService _boxService = boxService;
 
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -30,11 +31,11 @@ public class ProductController(IProductService productService) : ControllerBase
         return Ok(products.ToViewModel());
     }
 
-    [HttpGet("category/{categoryId:int}")]
+    [HttpGet("category/{categoryId:guid}")]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(IEnumerable<ProductViewModel>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetByCategoryId(int categoryId, [FromQuery] Pagination pagination)
+    public async Task<IActionResult> GetByCategoryId(Guid categoryId, [FromQuery] Pagination pagination)
     {
         var products = await _productService.GetByCategoryIdAsync(categoryId, pagination.Skip, pagination.Take, pagination.Name);
 
@@ -47,15 +48,16 @@ public class ProductController(IProductService productService) : ControllerBase
     [HttpGet("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(typeof(ProductViewModel), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProductWithBoxesViewModel), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetById(Guid id)
     {
         var product = await _productService.GetByIdAsync(id);
+        var boxes = await _boxService.GetByProductIdAsync(id, 0, 100, string.Empty);
 
         if (product is null)
             return NotFound();
 
-        return Ok(product.ToViewModel());
+        return Ok(product.ToViewModelWithBoxes(boxes));
     }
 
     [HttpPost]
@@ -69,12 +71,14 @@ public class ProductController(IProductService productService) : ControllerBase
         if (userId is null)
             return Unauthorized();
 
-        var result = await _productService.CreateAsync(Guid.Parse(userId), new ProductDTO
+        var result = await _productService.CreateAsync(new ProductDTO
         {
             Name = product.Name,
             Image = product.Image,
+            BarCode = product.BarCode,
+            Category = new CategoryDTO { Id = Guid.Parse(product.CategoryId) },
             UnitPrice = product.UnitPrice,
-            Quantity = product.Quantity,
+            Stock = product.Quantity,
         });
 
         if (result.IsFailed)
@@ -87,20 +91,22 @@ public class ProductController(IProductService productService) : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(IEnumerable<string>), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProductViewModel), StatusCodes.Status200OK)]
-    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateProductRequest category)
+    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateProductRequest product)
     {
         var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value;
 
         if (userId is null)
             return Unauthorized();
 
-        var result = await _productService.UpdateAsync(Guid.Parse(userId), new ProductDTO
+        var result = await _productService.UpdateAsync(new ProductDTO
         {
             Id = id,
-            Name = category.Name,
-            Image = category.Image,
-            UnitPrice = category.UnitPrice,
-            Quantity = category.Quantity,
+            Name = product.Name,
+            Image = product.Image,
+            BarCode = product.BarCode,
+            Category = new CategoryDTO { Id = Guid.Parse(product.CategoryId) },
+            UnitPrice = product.UnitPrice,
+            Stock = product.Stock,
         });
 
         if (result.IsFailed)
@@ -121,5 +127,20 @@ public class ProductController(IProductService productService) : ControllerBase
             return NotFound();
 
         return NoContent();
+    }
+
+    [HttpPatch("{id:guid}/stock")]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> UpdateStock(Guid id, [FromBody] uint stock)
+    {
+        var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value;
+        if (userId is null)
+            return Unauthorized();
+        var result = await _productService.UpdateStockAsync(id, stock);
+        if (result == null)
+            return BadRequest();
+        return Ok(result.ToViewModel());
     }
 }

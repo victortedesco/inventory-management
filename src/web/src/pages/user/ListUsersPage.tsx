@@ -1,33 +1,35 @@
 import { SideBar } from "@/components/SideBar";
-import { Menu } from "lucide-react";
+import User, { maskCPF } from "@/models/user.model";
+import { decodeToken } from "@/services/auth.service";
+import { getAllUsers, getRolesWhoCanEdit } from "@/services/user.service";
+import { AArrowDown, IdCard, Mails, Menu, Pencil } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 
-type FilterOption = "name" | "category" | "quantity" | "price";
+type FilterOption = "name" | "cpf" | "email";
 
-function ProductPage() {
+const ListUsersPage = () => {
   const navigate = useNavigate();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [users, setUsers] = useState<User[]>([]);
+  const [canEdit, setCanEdit] = useState<boolean>(false);
 
   useEffect(() => {
+    const fetchData = async () => {
+      const users = await getAllUsers();
+      setUsers(users);
+      const decodedToken = decodeToken(localStorage.getItem("token"));
+      const canEdit = await getRolesWhoCanEdit();
+      setCanEdit(canEdit.includes(decodedToken!.role));
+    };
+
     const token = localStorage.getItem("token");
     if (!token) navigate("/login");
-  }, []);
+    fetchData().catch(console.error);
+  }, [navigate]);
 
-  const products = [
-    { name: "Blusa", category: "Roupa", stock: 30, price: 50.0, icon: "👕" },
-    { name: "Doritos", category: "Comida", stock: 26, price: 8.0, icon: "🍿" },
-    {
-      name: "Bolsa",
-      category: "Acessórios",
-      stock: 10,
-      price: 140.0,
-      icon: "👜",
-    },
-    { name: "Camisa", category: "Roupa", stock: 42, price: 35.0, icon: "👔" },
-  ];
-  const totalItems = products.length;
-  const totalStock = products.reduce((sum, product) => sum + product.stock, 0);
+  const totalUsers = users.length;
 
   const [showFilterOptions, setShowFilterOptions] = useState<boolean>(false);
   const [selectedFilter, setSelectedFilter] = useState<FilterOption>("name");
@@ -37,12 +39,47 @@ function ProductPage() {
     setShowFilterOptions(false);
   };
 
-  const filterIcons: Record<FilterOption, string> = {
-    name: "🔤", // Nome do produto
-    category: "📂", // Categoria
-    quantity: "🔢", // Quantidade
-    price: "💰", // Preço
+  const handleSearch = async (event: React.FormEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+
+    if (!searchQuery.trim()) {
+      const users = await getAllUsers();
+      setUsers(users);
+      return;
+    }
+
+    let allUsers = await getAllUsers();
+    switch (selectedFilter) {
+      case "name":
+        allUsers = allUsers.filter((user) =>
+          user.displayName
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase().trim())
+        );
+        setUsers(allUsers);
+        break;
+      case "cpf":
+        allUsers = allUsers.filter((user) =>
+          user.cpf.toLowerCase().includes(searchQuery.toLowerCase().trim())
+        );
+        setUsers(allUsers);
+        break;
+      case "email":
+        allUsers = allUsers.filter((user) =>
+          user.email.toLowerCase().includes(searchQuery.toLowerCase().trim())
+        );
+
+        break;
+    }
+    setUsers(allUsers);
   };
+
+  const filterIcons: Record<FilterOption, React.JSX.Element> = {
+    name: <AArrowDown size={24} />,
+    cpf: <IdCard size={24} />,
+    email: <Mails size={24} />,
+  };
+
   return (
     <div className="flex min-h-screen">
       <div className="hidden md:block w-64 shrink-0">
@@ -71,13 +108,8 @@ function ProductPage() {
           <main className="w-full p-4">
             <div className="flex flex-col md:flex-row justify-between items-center mb-4">
               <div className="text-center md:text-left mb-2 md:mb-0">
-                <h2 className="text-2xl md:text-lg font-semibold">Produtos</h2>
-                <p className="text-base md:text-sm">
-                  {totalItems} Itens cadastrados
-                </p>
-                <p className="text-base md:text-sm">
-                  Quantidade disponível: {totalStock}
-                </p>
+                <h2 className="text-2xl md:text-xl font-semibold">Usuários</h2>
+                <p className="text-base">{totalUsers} usuários cadastrados</p>
               </div>
 
               {/* Formulário superior */}
@@ -86,6 +118,8 @@ function ProductPage() {
                   type="text"
                   placeholder="Pesquisar por..."
                   className="border p-1.5 rounded text-base w-full sm:w-40"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                 />
                 <div className="relative inline-block text-left">
                   <button
@@ -106,25 +140,19 @@ function ProductPage() {
                           className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
                           onClick={() => handleFilterSelect("name")}
                         >
-                          Nome do produto
+                          Nome
                         </li>
                         <li
                           className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
-                          onClick={() => handleFilterSelect("category")}
+                          onClick={() => handleFilterSelect("cpf")}
                         >
-                          Categoria
+                          CPF
                         </li>
                         <li
                           className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
-                          onClick={() => handleFilterSelect("quantity")}
+                          onClick={() => handleFilterSelect("email")}
                         >
-                          Quantidade
-                        </li>
-                        <li
-                          className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
-                          onClick={() => handleFilterSelect("price")}
-                        >
-                          Preço
+                          Email
                         </li>
                       </ul>
                     </div>
@@ -133,12 +161,14 @@ function ProductPage() {
 
                 <button
                   type="button"
-                  className="border p-1.5 rounded text-base"
-                  onClick={() => navigate("/create-product")}
+                  className="border p-1.5 rounded text-base bg-color-2"
+                  onClick={() => navigate("/user/edit")}
+                  disabled={!canEdit}
                 >
-                  + Itens
+                  + Usuário
                 </button>
                 <button
+                  onSubmit={handleSearch}
                   type="submit"
                   className="border p-1.5 rounded text-base"
                 >
@@ -148,38 +178,48 @@ function ProductPage() {
             </div>
 
             {/* Formulário inferior (tabela) */}
-            <form className="overflow-x-auto">
+            <form className="overflow-x-auto rounded-lg">
               <table className="min-w-full bg-white border text-lg md:text-base">
-                <thead className="bg-color-3 text-black">
+                <thead className="bg-color-3 text-black border border-black ">
                   <tr>
-                    <th className="w-10 px-4 py-3 border ">⭐</th>
-                    <th className="px-4 py-3 border ">Itens</th>
-                    <th className="px-4 py-3 border ">Categoria</th>
-                    <th className="px-4 py-3 border ">Estoque</th>
-                    <th className="px-4 py-3 border ">Preço</th>
-                    <th className="px-4 py-3 border ">🗑️</th>
+                    <th className="px-4 py-3  ">Nome (Nome de Usuário)</th>
+                    <th className="px-4 py-3 ">CPF</th>
+                    <th className="px-4 py-3 ">Email</th>
+                    <th className="px-4 py-3 ">Cargo</th>
+                    <th className={canEdit ? `px-4 py-3 ` : `hidden`}>Ações</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {products.map((product, index) => (
+                  {users.map((user, index) => (
                     <tr
                       key={index}
                       className={`text-center ${
                         index % 2 === 0 ? "bg-color-1" : "bg-color-2"
                       }`}
                     >
-                      <td className="border px-4 py-3">
-                        <input type="checkbox" className="w-4 h-4" />
+                      <td className="border border-black   px-4 py-3">
+                        {user.displayName} <span>({user.userName})</span>
                       </td>
-                      <td className="border  px-4 py-3">
-                        {product.name} <span>{product.icon}</span>
+                      <td className="border border-black  px-4 py-3">
+                        {maskCPF(user.cpf)}
                       </td>
-                      <td className="border  px-4 py-3">{product.category}</td>
-                      <td className="border  px-4 py-3">{product.stock}</td>
-                      <td className="border  px-4 py-3">
-                        R$ {product.price.toFixed(2)}
+                      <td className="border border-black  px-4 py-3">
+                        {user.email}
                       </td>
-                      <td className="border  px-4 py-3">🗑️</td>
+                      <td className="border border-black px-4 py-3">
+                        {user.role}
+                      </td>
+                      <td
+                        className={
+                          canEdit ? `border border-black  px-4 py-3` : `hidden`
+                        }
+                      >
+                        <button
+                          onClick={() => navigate(`/user/edit/${user.id}`)}
+                        >
+                          <Pencil size={32} />
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -190,6 +230,6 @@ function ProductPage() {
       </div>
     </div>
   );
-}
+};
 
-export default ProductPage;
+export default ListUsersPage;

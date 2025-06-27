@@ -10,6 +10,9 @@ public static class ViewModelExtensions
         {
             Id = category.Id,
             Name = category.Name,
+            TotalStock = category.TotalStock,
+            ProductCount = category.ProductCount,
+            Value = category.Value,
         };
     }
 
@@ -26,7 +29,9 @@ public static class ViewModelExtensions
             Name = product.Name,
             Image = product.Image,
             UnitPrice = product.UnitPrice,
-            Quantity = product.Quantity,
+            BarCode = product.BarCode,
+            Stock = product.Stock,
+            TotalStock = product.TotalStock,
             Category = product.Category?.ToViewModel(),
         };
     }
@@ -36,25 +41,74 @@ public static class ViewModelExtensions
         return products.Select(ToViewModel);
     }
 
+    public static ProductWithBoxesViewModel ToViewModelWithBoxes(
+       this ProductDTO product,
+       IEnumerable<BoxDTO> boxes)
+    {
+        return new ProductWithBoxesViewModel
+        {
+            Product = product.ToViewModel(),
+            Boxes = boxes.ToViewModel()
+        };
+    }
+
     public static BoxViewModel ToViewModel(this BoxDTO box)
     {
         return new BoxViewModel
         {
             Id = box.Id,
+            BarCode = box.BarCode,
             Name = box.Name,
             Discount = box.Discount,
             UnitPrice = box.UnitPrice,
-            Quantity = box.Quantity,
+            Stock = box.Stock,
             Weight = box.Weight,
             Depth = box.Depth,
             Height = box.Height,
             Width = box.Width,
-            Products = box.Products.ToViewModel(),
+            Products = box.Products.Select(p => p.ToViewModel()).ToList(),
         };
     }
 
     public static IEnumerable<BoxViewModel> ToViewModel(this IEnumerable<BoxDTO> boxes)
     {
         return boxes.Select(ToViewModel);
+    }
+
+    public static AuditLogViewModel ToViewModel(this AuditLogDTO auditLog)
+    {
+        return new AuditLogViewModel
+        {
+            Id = auditLog.Id,
+            EntityId = auditLog.EntityId,
+            EntityType = auditLog.EntityType,
+            EntityName = auditLog.EntityName,
+            ActionType = auditLog.ActionType,
+            Property = auditLog.Property,
+            OldValue = auditLog.OldValue,
+            NewValue = auditLog.NewValue,
+            UserId = auditLog.UserId,
+            Timestamp = auditLog.Timestamp,
+        };
+    }
+
+    public static IEnumerable<AuditLogViewModel> ToViewModel(this IEnumerable<AuditLogDTO> auditLogs)
+    {
+        return auditLogs.Select(ToViewModel);
+    }
+
+    public static ProductInBoxViewModel ToViewModel(this ProductInBoxDTO productInBox)
+    {
+        return new ProductInBoxViewModel
+        {
+            BoxId = productInBox.BoxId,
+            ProductId = productInBox.Product.Id,
+            Quantity = productInBox.Quantity,
+            Product = productInBox.Product.ToViewModel()
+        };
+    }
+    public static IEnumerable<ProductInBoxViewModel> ToViewModel(this IEnumerable<ProductInBoxDTO> productsInBox)
+    {
+        return productsInBox.Select(ToViewModel);
     }
 }

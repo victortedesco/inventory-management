@@ -19,21 +19,7 @@ internal class BoxEntityConfiguration : IEntityTypeConfiguration<Box>
         builder.HasIndex(b => b.Name)
             .IsUnique();
 
-        builder.Property(b => b.CreatedBy)
-            .IsRequired();
-
-        builder.Property(b => b.UpdatedBy)
-            .IsRequired();
-
-        builder.Property(b => b.CreatedAt)
-            .HasDefaultValueSql("CURRENT_TIMESTAMP")
-            .ValueGeneratedOnAdd();
-
-        builder.Property(b => b.UpdatedAt)
-            .HasDefaultValueSql("CURRENT_TIMESTAMP")
-            .ValueGeneratedOnAddOrUpdate();
-
-        builder.Property(b => b.Quantity)
+        builder.Property(b => b.Stock)
             .IsRequired();
 
         builder.Property(b => b.Discount)
@@ -53,7 +39,8 @@ internal class BoxEntityConfiguration : IEntityTypeConfiguration<Box>
             .IsRequired();
 
         builder.HasMany(b => b.Products)
-            .WithOne()
-            .OnDelete(DeleteBehavior.Cascade);
+    .WithOne(pib => pib.Box)
+    .HasForeignKey(pib => pib.BoxId)
+    .OnDelete(DeleteBehavior.Cascade);
     }
 }

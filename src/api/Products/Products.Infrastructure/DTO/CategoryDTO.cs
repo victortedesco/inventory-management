@@ -1,7 +1,10 @@
 ﻿namespace Products.Infrastructure.DTO;
 
-public class CategoryDTO : IDTO<int>
+public class CategoryDTO : IDTO<Guid>
 {
-    public int Id { get; set; }
+    public Guid Id { get; set; }
     public string Name { get; set; }
+    public int TotalStock { get; set; }
+    public int ProductCount { get; set; }
+    public decimal Value { get; set; } = 0.0m;
 }

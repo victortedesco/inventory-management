@@ -44,6 +44,10 @@ export const decodeToken = (token: string | null) => {
   if (!token) return null;
   try {
     const decoded = jwtDecode<TokenPayload>(token);
+    if (decoded.exp * 1000 < Date.now()) {
+      logout();
+      return null;
+    }
     return decoded;
   } catch (error) {
     console.error("Token inválido", error);
@@ -56,4 +60,5 @@ export interface TokenPayload {
   jti: string;
   name: string;
   exp: number;
+  role: string;
 }

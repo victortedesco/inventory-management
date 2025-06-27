@@ -21,7 +21,7 @@ public class UserDTO
             DisplayName = user.DisplayName,
             Email = user.Email,
             CPF = user.CPF,
-            Role = user.Role,
+            Role = user.Role.Name,
             Password = user.Password
         };
     }

@@ -55,12 +55,13 @@ public class BoxController(IBoxService boxService) : ControllerBase
         if (userId is null)
             return Unauthorized();
 
-        var result = await _boxService.CreateAsync(Guid.Parse(userId), new BoxDTO
+        var result = await _boxService.CreateAsync(new BoxDTO
         {
             Name = box.Name,
+            BarCode = box.BarCode,
             Discount = box.Discount,
             UnitPrice = box.UnitPrice,
-            Quantity = box.Quantity,
+            Stock = box.Quantity,
             Weight = box.Weight,
             Depth = box.Depth,
             Height = box.Height,
@@ -84,13 +85,13 @@ public class BoxController(IBoxService boxService) : ControllerBase
         if (userId is null)
             return Unauthorized();
 
-        var result = await _boxService.UpdateAsync(Guid.Parse(userId), new BoxDTO
+        var result = await _boxService.UpdateAsync(new BoxDTO
         {
             Id = id,
             Name = box.Name,
             Discount = box.Discount,
             UnitPrice = box.UnitPrice,
-            Quantity = box.Quantity,
+            Stock = box.Quantity,
             Weight = box.Weight,
             Depth = box.Depth,
             Height = box.Height,
@@ -114,7 +115,7 @@ public class BoxController(IBoxService boxService) : ControllerBase
         if (userId is null)
             return Unauthorized();
 
-        var result = await _boxService.AddProduct(Guid.Parse(userId), boxId, productId);
+        var result = await _boxService.AddProduct(boxId, productId);
 
         if (result.IsFailed)
             return BadRequest(result.Errors.Select(e => e.Message));
@@ -133,12 +134,48 @@ public class BoxController(IBoxService boxService) : ControllerBase
         if (userId is null)
             return Unauthorized();
 
-        var result = await _boxService.RemoveProduct(Guid.Parse(userId), boxId, productId);
+        var result = await _boxService.RemoveProduct(boxId, productId);
 
         if (result.IsFailed)
             return BadRequest(result.Errors.Select(e => e.Message));
 
         return Ok(result.Value.ToViewModel());
+    }
+
+    [HttpPatch("{id:guid}/product/{productId:guid}/quantity")]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(BoxViewModel), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<string>), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> UpdateProductQuantity(Guid id, Guid productId, [FromBody] uint quantity)
+    {
+        var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value;
+        if (userId is null)
+            return Unauthorized();
+
+        var result = await _boxService.UpdateProductQuantityAsync(id, productId, quantity);
+
+        if (result.IsFailed)
+            return BadRequest(result.Errors.Select(e => e.Message));
+
+        return Ok(result.Value.ToViewModel());
+    }
+
+    [HttpPatch("{id:guid}/stock")]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(BoxViewModel), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<string>), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> UpdateStock(Guid id, [FromBody] uint stock)
+    {
+        var userId = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier).Value;
+        if (userId is null)
+            return Unauthorized();
+
+        var result = await _boxService.UpdateStockAsync(id, stock);
+
+        if (result is null)
+            return NotFound();
+
+        return Ok(result.ToViewModel());
     }
 
     [HttpDelete("{id:guid}")]

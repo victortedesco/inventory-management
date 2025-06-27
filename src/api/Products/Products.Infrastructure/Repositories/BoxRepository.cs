@@ -12,24 +12,38 @@ public class BoxRepository(AppDbContext dbContext) : IBoxRepository
     public async Task<IEnumerable<Box>> GetAllAsync(int skip, int take, string name)
     {
         return await _boxes
-            .OrderByDescending(c => c.CreatedAt)
+            .OrderByDescending(c => c.Name)
+            .Include(b => b.Products)
+                .ThenInclude(pb => pb.Product)
             .Skip(skip)
             .Take(take)
-            .Include(b => b.Products)
             .Where(b => string.IsNullOrEmpty(name) || b.Name.ToLower().Contains(name.ToLower()))
             .ToListAsync();
     }
 
     public async Task<Box> GetByIdAsync(Guid id)
     {
-        return await _boxes.Include(b => b.Products).FirstOrDefaultAsync(b => b.Id == id);
+        return await _boxes.Include(b => b.Products).ThenInclude(pb => pb.Product).FirstOrDefaultAsync(b => b.Id == id);
     }
+
+    public async Task<IEnumerable<Box>> GetByProductIdAsync(Guid productId, int skip, int take, string name)
+    {
+        return await _boxes
+            .Include(b => b.Products)
+                .ThenInclude(pb => pb.Product)
+            .Where(b => b.Products.Any(p => p.ProductId == productId) &&
+                        (string.IsNullOrEmpty(name) || b.Name.ToLower().Contains(name.ToLower())))
+            .OrderByDescending(b => b.Name)
+            .Skip(skip)
+            .Take(take)
+            .ToListAsync();
+    }
+
 
     public async Task<Box> CreateAsync(Box entity)
     {
         var result = await _boxes.AddAsync(entity);
         await dbContext.SaveChangesAsync();
-        dbContext.Entry(result.Entity).Collection(b => b.Products).Load();
         return result.Entity;
     }
 
@@ -37,7 +51,6 @@ public class BoxRepository(AppDbContext dbContext) : IBoxRepository
     {
         var result = _boxes.Update(entity);
         await dbContext.SaveChangesAsync();
-        dbContext.Entry(result.Entity).Collection(b => b.Products).Load();
         return result.Entity;
     }
 

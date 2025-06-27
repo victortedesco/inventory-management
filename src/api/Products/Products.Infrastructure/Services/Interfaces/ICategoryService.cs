@@ -3,8 +3,8 @@ using Products.Infrastructure.DTO;
 
 namespace Products.Infrastructure.Services.Interfaces;
 
-public interface ICategoryService : IService<int, CategoryDTO>
+public interface ICategoryService : IService<Guid, CategoryDTO>
 {
-    Task<Result<CategoryDTO>> AddProduct(Guid updatedBy, int categoryId, Guid productId);
-    Task<Result<CategoryDTO>> RemoveProduct(Guid updatedBy, int categoryId, Guid productId);
+    Task<Result<CategoryDTO>> AddProduct(Guid categoryId, Guid productId);
+    Task<Result<CategoryDTO>> RemoveProduct(Guid categoryId, Guid productId);
 }

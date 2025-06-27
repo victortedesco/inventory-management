@@ -19,19 +19,12 @@ internal class ProductEntityConfiguration : IEntityTypeConfiguration<Product>
         builder.HasIndex(b => b.Name)
             .IsUnique();
 
-        builder.Property(b => b.CreatedBy)
-            .IsRequired();
+        builder.Property(b => b.BarCode)
+            .IsRequired()
+            .HasMaxLength(13);
 
-        builder.Property(b => b.UpdatedBy)
-            .IsRequired();
-
-        builder.Property(b => b.CreatedAt)
-             .HasDefaultValueSql("CURRENT_TIMESTAMP")
-             .ValueGeneratedOnAdd();
-
-        builder.Property(b => b.UpdatedAt)
-            .HasDefaultValueSql("CURRENT_TIMESTAMP")
-            .ValueGeneratedOnAddOrUpdate();
+        builder.HasIndex(b => b.BarCode)
+            .IsUnique();
 
         builder.Property(p => p.Image)
             .IsRequired();
@@ -41,12 +34,17 @@ internal class ProductEntityConfiguration : IEntityTypeConfiguration<Product>
             .HasColumnType("decimal(18,2)")
             .HasDefaultValue(0);
 
-        builder.Property(p => p.Quantity)
+        builder.Property(p => p.Stock)
             .IsRequired()
             .HasDefaultValue(0);
 
         builder.HasOne(p => p.Category)
             .WithMany(c => c.Products)
             .HasForeignKey("CategoryId");
+
+        builder.HasMany(p => p.ProductInBoxes)
+            .WithOne(pib => pib.Product)
+            .HasForeignKey(pib => pib.ProductId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

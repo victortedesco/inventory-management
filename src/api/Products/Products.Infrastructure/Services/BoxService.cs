@@ -23,7 +23,13 @@ public class BoxService(IProductRepository productRepository, IBoxRepository box
         return box?.ToDTO();
     }
 
-    public async Task<Result<BoxDTO>> CreateAsync(Guid createdBy, BoxDTO entity)
+    public async Task<IEnumerable<BoxDTO>> GetByProductIdAsync(Guid productId, int skip, int take, string name)
+    {
+        var boxes = await _boxRepository.GetByProductIdAsync(productId, skip, take, name);
+        return boxes.ToDTO();
+    }
+
+    public async Task<Result<BoxDTO>> CreateAsync(BoxDTO entity)
     {
         var errors = new List<string>();
 
@@ -41,7 +47,7 @@ public class BoxService(IProductRepository productRepository, IBoxRepository box
             errors.Add("Box height must be greater than zero");
         if (entity.Width <= 0)
             errors.Add("Box width must be greater than zero");
-        if (entity.Quantity < 0)
+        if (entity.Stock < 0)
             errors.Add("Box quantity must be greater than or equal to zero");
         if (entity.Discount < 0)
             errors.Add("Box discount must be greater than or equal to zero");
@@ -57,21 +63,20 @@ public class BoxService(IProductRepository productRepository, IBoxRepository box
         var newEntity = new Box
         {
             Name = entity.Name.Trim(),
-            Quantity = entity.Quantity,
+            BarCode = entity.BarCode,
+            Stock = entity.Stock,
             Discount = entity.Discount,
             Weight = entity.Weight,
             Depth = entity.Depth,
             Height = entity.Height,
             Width = entity.Width,
-            CreatedBy = createdBy,
-            UpdatedBy = createdBy
         };
 
         var result = await _boxRepository.CreateAsync(newEntity);
         return Result.Ok(result.ToDTO());
     }
 
-    public async Task<Result<BoxDTO>> UpdateAsync(Guid updatedBy, BoxDTO entity)
+    public async Task<Result<BoxDTO>> UpdateAsync(BoxDTO entity)
     {
         var errors = new List<string>();
 
@@ -89,12 +94,12 @@ public class BoxService(IProductRepository productRepository, IBoxRepository box
             errors.Add("Box height must be greater than zero");
         if (entity.Width <= 0)
             errors.Add("Box width must be greater than zero");
-        if (entity.Quantity < 0)
+        if (entity.Stock < 0)
             errors.Add("Box quantity must be greater than or equal to zero");
         if (entity.Discount < 0)
             errors.Add("Box discount must be greater than or equal to zero");
         if (entity.Discount > 80)
-            errors.Add("Box discount must be at most 80");
+            errors.Add("Box discount must be less or equal to 80");
         if (errors.Count != 0)
             return Result.Fail(errors);
 
@@ -104,13 +109,13 @@ public class BoxService(IProductRepository productRepository, IBoxRepository box
             return Result.Fail("Box does not exists");
 
         existingBox.Name = entity.Name.Trim();
-        existingBox.Quantity = entity.Quantity;
+        existingBox.BarCode = entity.BarCode;
+        existingBox.Stock = entity.Stock;
         existingBox.Weight = entity.Weight;
         existingBox.Depth = entity.Depth;
         existingBox.Height = entity.Height;
         existingBox.Width = entity.Width;
         existingBox.Discount = entity.Discount;
-        existingBox.UpdatedBy = updatedBy;
 
         var result = await _boxRepository.UpdateAsync(existingBox);
         if (result is null)
@@ -124,7 +129,7 @@ public class BoxService(IProductRepository productRepository, IBoxRepository box
         return await _boxRepository.DeleteAsync(id);
     }
 
-    public async Task<Result<BoxDTO>> AddProduct(Guid updatedBy, Guid boxId, Guid productId)
+    public async Task<Result<BoxDTO>> AddProduct(Guid boxId, Guid productId)
     {
         var errors = new List<string>();
 
@@ -141,9 +146,17 @@ public class BoxService(IProductRepository productRepository, IBoxRepository box
         if (errors.Count > 0)
             return Result.Fail(errors);
 
-        box.UpdatedBy = updatedBy;
-        box.Products.Add(product);
+        var productInBox = box.Products.FirstOrDefault(p => p.ProductId == productId);
 
+        if (productInBox is not null)
+            return Result.Fail("Product already exists in box");
+
+        box.Products.Add(new ProductInBox
+        {
+            ProductId = productId,
+            BoxId = boxId,
+            Quantity = 0
+        });
         var result = await _boxRepository.UpdateAsync(box);
 
         if (result is null)
@@ -152,7 +165,7 @@ public class BoxService(IProductRepository productRepository, IBoxRepository box
         return Result.Ok(result.ToDTO());
     }
 
-    public async Task<Result<BoxDTO>> RemoveProduct(Guid updatedBy, Guid boxId, Guid productId)
+    public async Task<Result<BoxDTO>> RemoveProduct(Guid boxId, Guid productId)
     {
         var errors = new List<string>();
 
@@ -169,8 +182,12 @@ public class BoxService(IProductRepository productRepository, IBoxRepository box
         if (errors.Count > 0)
             return Result.Fail(errors);
 
-        box.UpdatedBy = updatedBy;
-        box.Products.Remove(product);
+        var productInBox = box.Products.FirstOrDefault(p => p.ProductId == productId);
+
+        if (productInBox is null)
+            return Result.Fail("Product does not exists in box");
+
+        box.Products.Remove(productInBox);
 
         var result = await _boxRepository.UpdateAsync(box);
 
@@ -178,5 +195,46 @@ public class BoxService(IProductRepository productRepository, IBoxRepository box
             return Result.Fail("Could not remove product from box");
 
         return Result.Ok(result.ToDTO());
+    }
+
+    public async Task<Result<BoxDTO>> UpdateProductQuantityAsync(Guid boxId, Guid productId, uint quantity)
+    {
+        var errors = new List<string>();
+
+        var box = await _boxRepository.GetByIdAsync(boxId);
+
+        if (box is null)
+            errors.Add("Box does not exists");
+
+        var product = await _productRepository.GetByIdAsync(productId);
+
+        if (product is null)
+            errors.Add("Product does not exists");
+
+        if (errors.Count > 0)
+            return Result.Fail(errors);
+
+        var productInBox = box.Products.FirstOrDefault(p => p.ProductId == productId);
+
+        if (productInBox is null)
+            return Result.Fail("Product does not exists in box");
+
+        productInBox.Quantity = Math.Max(0, quantity);
+        var result = await _boxRepository.UpdateAsync(box);
+
+        if (result is null)
+            return Result.Fail("Could not update product quantity in box");
+
+        return Result.Ok(result.ToDTO());
+    }
+
+    public async Task<BoxDTO> UpdateStockAsync(Guid boxId, uint stock)
+    {
+        var box = await _boxRepository.GetByIdAsync(boxId);
+        if (box is null)
+            return null;
+        box.Stock = Math.Max(0, stock);
+        var result = await _boxRepository.UpdateAsync(box);
+        return result?.ToDTO();
     }
 }

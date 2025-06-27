@@ -4,14 +4,14 @@ import { Outlet, useNavigate } from "react-router";
 import { SideBar } from "./components/SideBar";
 import { Menu } from "lucide-react";
 
-function App() {
+const App = () => {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) navigate("/login");
-  }, []);
+  }, [navigate]);
 
   return (
     <div className="flex min-h-screen">
